@@ -1,9 +1,8 @@
 #include<cstdio>
-
-
 #define fclrprint(color, statement, ...) \
         printf(color); printf(statement, ##__VA_ARGS__); printf("\033[0m");
-#define clrprintf(forecolor, backcolor, statment, ...) \
+
+#define clrprint(forecolor, backcolor, statment, ...) \
         printf("%s%s", forecolor, backcolor); \
         printf(statement, ##__VA_ARGS__); printf("\033[0m");
 
