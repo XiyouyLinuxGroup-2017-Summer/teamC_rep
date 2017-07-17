@@ -6,8 +6,7 @@
 #include<string>
 #include<algorithm>
 #include<vector>
-//#include<pangda/ls.h>
-#include"../../include/pangda/ls.h"
+#include<pangda/ls.h>
 using std::vector;
 using std::string;
 
@@ -51,10 +50,15 @@ void output_normal(vstr filenames) {
         length = 1;
 
     int i = 0;
+    bool fir = true;
     for (auto it : filenames) {
-        printf("  %-*s", length, it.c_str());
+        if (fir)
+            fir = false;
+        else
+            printf("  ");
+        printf("%-*s", length, it.c_str());
         if (++i == length)
-            putchar('\n'), i = 0;
+            putchar('\n'), i = 0, fir = true;
     }
 }
 
