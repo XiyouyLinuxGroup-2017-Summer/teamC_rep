@@ -1,7 +1,6 @@
 #pragma once
 #ifndef _HEADER_MYLS_
 #define _HEADER_MYLS_
-#include<cstdio>
 #include<string>
 #include<fcntl.h>
 #include<sys/stat.h>
@@ -14,37 +13,20 @@
 #include<cmath>
 #include<map>
 
-#define fclrprint(color, statement, ...) \
-        printf(color); printf(statement, ##__VA_ARGS__); printf("\033[0m");
-
-#define clrprint(forecolor, backcolor, statment, ...) \
-        printf("%s%s", forecolor, backcolor); \
-        printf(statement, ##__VA_ARGS__); printf("\033[0m");
+using std::string;
 
 //param
-//output method:
-//drwxr-xr-x 2 root root 4096 Sat May 12 14:15:46 Name
-//mode&type linknum username groupname size creatime filename
-const int PARAM_a = 0x01; //-a --all
-const int PARAM_A = 0x02; //-A --almost-all
+const int PARAM_a = 0x01; //-a --all do not ignore entries starting with .
+const int PARAM_A = 0x02; //-A --almost-all do not list implied . and ..
 const int PARAM_f = 0x04; //-f do not sort
 const int PARAM_r = 0x08; //-r reverse order while sorting
 const int PARAM_R = 0x10; //-R list subdirectories recursively
-const int PARAM_l = 0x20; //-l 
-
-//typedef
-using std::vector;
-using std::string;
-
-typedef vector<string> vstr_t;
-typedef vector<int> vint_t;
-typedef vector<vector<int> > vvint_t;
-
+const int PARAM_l = 0x20; //-l use a long listing format
 
 //structs
 struct list_type {
     int rows, cols, judge;
-    vint_t widths_list;
+    std::vector<int> widths_list;
 };
 
 struct param_t {
@@ -63,20 +45,28 @@ struct files_t {
     std::string fst_uid;
     std::string fst_gid;
 };
-typedef vector<files_t> vft_t;
+
 struct filelist_t {
     static const bool FLT_LIST = true;
     static const bool FLT_MAP = false;
     bool type = FLT_MAP;
-    vft_t nlist;
-    std::map<std::string, vft_t> nmap;
+    std::vector<files_t> nlist;
+    std::map<std::string,  std::vector<files_t> > nmap;
 };
 
+//typedef
+typedef std::vector<std::string> vstr_t;
+typedef std::vector<int> vint_t;
+typedef std::vector<std::vector<int> > vvint_t;
+typedef std::vector<files_t> vft_t;
 
+//Function: ls_display.cpp
+int output(param_t param, const filelist_t flt);
+//Functions: ls_param.cpp
 param_t set_param(const int argc, char *argv[]);
 bool check_param(const param_t msg, const int param);
+//Functions: ls_common.cpp
 filelist_t build_filelist(const param_t param);
-int output(param_t param, const filelist_t flt);
 string get_username(uid_t uid);
 string get_groupname(gid_t gid);
 
