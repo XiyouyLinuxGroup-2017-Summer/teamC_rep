@@ -1,4 +1,4 @@
-args = -std=c++14 -I ../../include -Wall
+args = -std=c++14 -I ../include -Wall
 
 myls: ls_common.o ls_display.o ls_param.o ls.o
 	g++ $(args) -o myls ls_common.o ls_display.o ls_param.o ls`.o
