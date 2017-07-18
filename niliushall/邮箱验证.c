@@ -21,18 +21,11 @@ int main (void)
         if(mail[0] == '@' || mail[0] == '.' || mail[len-1] == '@' || mail[len-1] == '.'){
             flag_1 = 1;
         }
-        for(i = 0; i < len; i++){
+        for(i = 1; i < len; i++){
             if(mail[i] == '@'){
                 x++;
                 flag = 1;
-                if(mail[i+1] == '.'){
-                    flag_1 = 1;
-                }
-                break;
-            }
-            if(mail[i] == '.'){
-                flag = 1;
-                if(mail[i+1] == '@'){
+                if(mail[i+1] == '.' || mail[i-1] == '.'){
                     flag_1 = 1;
                 }
                 break;
