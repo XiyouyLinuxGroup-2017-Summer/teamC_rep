@@ -1,4 +1,8 @@
 #include<pangda/ls.h>
+#include<pwd.h>
+#include<grp.h>
+#include<queue>
+using std:queue;
 
 static DIR *open_folder(const param_t param) {
     DIR *ret;
@@ -18,6 +22,8 @@ static char check_type(const mode_t mode) {
 
 static filelist_t build_filelist_map(const param_t param, DIR *where) {
     filelist_t ret = { filelist_t::FLT_MAP };
+
+    return ret;
 }
 
 static filelist_t build_filelist_list(const param_t param, DIR *where) {
@@ -44,8 +50,8 @@ static filelist_t build_filelist_list(const param_t param, DIR *where) {
             return filelist_t();
         }
         temp.fst_creatime = stbuf.st_ctime;
-        temp.fst_gid = stbuf.st_gid;
-        temp.fst_uid = stbuf.st_uid;
+        temp.fst_gid = get_groupname(stbuf.st_gid);
+        temp.fst_uid = get_username(stbuf.st_uid);
         temp.fst_linknum = stbuf.st_nlink;
         temp.fst_mode = stbuf.st_mode;
         temp.fst_type = check_type(stbuf.st_mode);
@@ -58,10 +64,10 @@ static filelist_t build_filelist_list(const param_t param, DIR *where) {
         return ret;
     }
     auto sort_cmp = [](const files_t a, const files_t b) -> bool {
-        return a.fst_name > b.fst_name;
+        return a.fst_name < b.fst_name;
     };
     auto sort_revcmp = [](const files_t a, const files_t b) -> bool {
-        return a.fst_name < b.fst_name;
+        return a.fst_name > b.fst_name;
     };
 
     if (check_param(param, PARAM_r))
@@ -77,4 +83,14 @@ filelist_t build_filelist(const param_t param) {
     if (check_param(param, PARAM_R))
         return build_filelist_map(param, where);
     return build_filelist_list(param, where);
+}
+
+string get_username(uid_t uid) {
+    passwd *ret = getpwuid(uid);
+    return string(ret->pw_name);
+}
+
+string get_groupname(gid_t gid) {
+    group *ret = getgrgid(gid);
+    return string(ret->gr_name);
 }

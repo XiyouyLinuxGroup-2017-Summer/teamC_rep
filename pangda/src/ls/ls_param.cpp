@@ -44,7 +44,7 @@ bool check_param(const param_t msg, const int param) {
     return (msg.param_flag & param);
 }
 
-param_t set_param(const int argc, const char *argv[]) {
+param_t set_param(int argc, char *argv[]) {
     param_t ret = { "./", 0 };
 
     for (int i = 1; i < argc; i++) {

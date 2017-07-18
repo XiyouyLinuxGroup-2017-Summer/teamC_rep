@@ -3,6 +3,7 @@
 #define _HEADER_MYLS_
 #include<cstdio>
 #include<string>
+#include<fcntl.h>
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<sys/ioctl.h>
@@ -20,8 +21,6 @@
         printf("%s%s", forecolor, backcolor); \
         printf(statement, ##__VA_ARGS__); printf("\033[0m");
 
-
-
 //param
 //output method:
 //drwxr-xr-x 2 root root 4096 Sat May 12 14:15:46 Name
@@ -31,7 +30,7 @@ const int PARAM_A = 0x02; //-A --almost-all
 const int PARAM_f = 0x04; //-f do not sort
 const int PARAM_r = 0x08; //-r reverse order while sorting
 const int PARAM_R = 0x10; //-R list subdirectories recursively
-const int PARAM_l = 0x11; //-l 
+const int PARAM_l = 0x20; //-l 
 
 //typedef
 using std::vector;
@@ -61,8 +60,8 @@ struct files_t {
     long fst_creatime;
     off_t fst_size;
     nlink_t fst_linknum;
-    uid_t fst_uid;
-    gid_t fst_gid;
+    std::string fst_uid;
+    std::string fst_gid;
 };
 typedef vector<files_t> vft_t;
 struct filelist_t {
@@ -74,9 +73,11 @@ struct filelist_t {
 };
 
 
-param_t set_param(const int argc, const char *argv[]);
+param_t set_param(const int argc, char *argv[]);
 bool check_param(const param_t msg, const int param);
-//inline bool check_param(const param_t msg, const int param);
-
+filelist_t build_filelist(const param_t param);
+int output(param_t param, const filelist_t flt);
+string get_username(uid_t uid);
+string get_groupname(gid_t gid);
 
 #endif
