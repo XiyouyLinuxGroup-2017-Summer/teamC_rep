@@ -23,11 +23,11 @@ static char check_type(const mode_t mode) {
 }
 
 static filelist_t build_filelist_map(param_t param, DIR *where) {
-
-    filelist_t ret = { filelist_t::FLT_MAP };
+    filelist_t ret;
+    ret.type = false;
     queue<pair<string, DIR *> > q;
+    where = opendir(param.path.c_str());
     q.push(make_pair(param.path, where));
-
     while (!q.empty()) {
         pair<string, DIR *> qt = q.front();
         q.pop();
@@ -37,9 +37,12 @@ static filelist_t build_filelist_map(param_t param, DIR *where) {
         dirent *thisfile;
         bool param_a = check_param(param, PARAM_a);
         bool param_A = check_param(param, PARAM_A);
+        
+        if (qt.second == NULL) {
+            continue;
+        }
 
-        chdir(qt.first.c_str());
-        while ((thisfile = readdir(where)) != NULL) {
+        while ((thisfile = readdir(qt.second)) != NULL) {
             temp.fst_name = thisfile->d_name;
             if (!(param_A || param_a)) {
                 if (temp.fst_name[0] == '.')
@@ -49,9 +52,15 @@ static filelist_t build_filelist_map(param_t param, DIR *where) {
                     continue;
             }
             temp.fst_namelen = thisfile->d_reclen;
+            string statp = thisfile->d_name;
+            if (qt.first[qt.first.size() - 1] == '/')
+                statp = qt.first + statp;
+            else
+                statp = qt.first + '/' +statp;
 
-            if (lstat(thisfile->d_name, &stbuf) == -1) {
-                return filelist_t();
+            if (lstat(statp.c_str(), &stbuf) == -1) {
+                printf("##lstat,continue here.path:%s,errno:%d##", statp.c_str(), errno); getchar();
+                continue;
             }
             temp.fst_creatime = stbuf.st_ctime;
             temp.fst_gid = get_groupname(stbuf.st_gid);
@@ -61,13 +70,16 @@ static filelist_t build_filelist_map(param_t param, DIR *where) {
             temp.fst_type = check_type(stbuf.st_mode);
             temp.fst_size = stbuf.st_size;
             ret.nmap[qt.first].push_back(temp);
+
             if (temp.fst_type == 'd' && temp.fst_name != "." && temp.fst_name != "..") {
-                DIR *newdir = opendir(temp.fst_name.c_str());
-                q.push(make_pair(qt.first + temp.fst_name, newdir));
+                string newpath = qt.first + temp.fst_name;
+                if (newpath[newpath.size() - 1] != '/')
+                    newpath += '/';
+                DIR *newdir = opendir(newpath.c_str());
+                q.push(make_pair(newpath, newdir));
             }
         }
-
-        closedir(where);
+        closedir(qt.second);
         if (check_param(param, PARAM_f)) {
             continue;
         }
@@ -83,6 +95,7 @@ static filelist_t build_filelist_map(param_t param, DIR *where) {
         else
             sort(ret.nmap[qt.first].begin(), ret.nmap[qt.first].end(), sort_cmp);
     }
+
     return ret;
 }
 
@@ -95,6 +108,10 @@ static filelist_t build_filelist_list(param_t param, DIR *where) {
     bool param_A = check_param(param, PARAM_A);
 
     chdir(param.path.c_str());
+    if (where == NULL) {
+        printf("Permission Denined.\n");
+        exit(-1);
+    }
     while ((thisfile = readdir(where)) != NULL) {
         temp.fst_name = thisfile->d_name;
         if (!(param_A || param_a)) {
@@ -147,10 +164,14 @@ filelist_t build_filelist(const param_t param) {
 
 string get_username(uid_t uid) {
     passwd *ret = getpwuid(uid);
+    if (ret == NULL)
+        return "";
     return string(ret->pw_name);
 }
 
 string get_groupname(gid_t gid) {
     group *ret = getgrgid(gid);
+    if (ret == NULL)
+        return "";
     return string(ret->gr_name);
 }

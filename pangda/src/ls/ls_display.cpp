@@ -19,13 +19,26 @@ const char *BCLR_YELLOW = "\033[43m";
 const char *BCLR_BLUE = "\033[44m";
 const char *BCLR_PURPLE = "\033[45m";
 const char *BCLR_SKY = "\033[46m";
-
 const char *BCLR_WHITE = "\033[47m";
 
 static winsize get_winsize() {
     winsize ret;
     ioctl(STDIN_FILENO, TIOCGWINSZ, (char *)&ret);
     return ret;
+}
+
+static int setc(mode_t mode, string filename) {
+    if (S_ISDIR(mode))
+        return printf("\033[36m");
+    if (S_ISLNK(mode))
+        return printf("\033[33;35m");
+    if ((mode & S_IXUSR) || (mode & S_IXOTH) || (mode & S_IXGRP))
+        return printf("\033[32m");
+    return printf("\033[0m");
+}
+
+static int canc() {
+    return printf("\033[0m");
 }
 
 inline static unsigned int find_pos(const int x, const int y, const int tier) {
@@ -89,7 +102,9 @@ static int outone_normal(const vft_t filist) {
             fir = false;
         else
             printf("  ");
+        setc(it.fst_mode, it.fst_name);
         printf("%-*s", lt.widths_list[i], it.fst_name.c_str());
+        canc();
         if (++i == lt.cols)
             putchar('\n'), i = 0, fir = true;;
     }
@@ -153,7 +168,9 @@ static int outone_list(const vft_t filist) {
         printf("%-*s ", widths[1], it.fst_gid.c_str());
         printf("%*d ", widths[2], (int)it.fst_size);
         printf("%s ", calc_time(it.fst_creatime).c_str());
+        setc(it.fst_mode, it.fst_name);
         printf("%s\n", it.fst_name.c_str());
+        canc();
     }
     return 0;
 }
@@ -166,11 +183,12 @@ static int output_list(param_t param, const filelist_t filist) {
 
 static int output_map(param_t param, const filelist_t filist) {
     for (auto it : filist.nmap) {
-        printf("%s\n", it.first.c_str());
+        printf("%s:\n", it.first.c_str());
         if (check_param(param, PARAM_l))
             outone_list(it.second);
         else
             outone_normal(it.second);
+        printf("\n");
     }
     return 0;
 }
