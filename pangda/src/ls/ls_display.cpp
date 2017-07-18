@@ -165,7 +165,14 @@ static int output_list(param_t param, const filelist_t filist) {
 }
 
 static int output_map(param_t param, const filelist_t filist) {
-
+    for (auto it : filist.nmap) {
+        printf("%s\n", it.first.c_str());
+        if (check_param(param, PARAM_l))
+            outone_list(it.second);
+        else
+            outone_normal(it.second);
+    }
+    return 0;
 }
 
 int output(param_t param, const filelist_t flt) {

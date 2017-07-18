@@ -2,7 +2,9 @@
 #include<pwd.h>
 #include<grp.h>
 #include<queue>
-using std:queue;
+using std::pair;
+using std::make_pair;
+using std::queue;
 
 static DIR *open_folder(const param_t param) {
     DIR *ret;
@@ -20,13 +22,71 @@ static char check_type(const mode_t mode) {
     return '-';
 }
 
-static filelist_t build_filelist_map(const param_t param, DIR *where) {
-    filelist_t ret = { filelist_t::FLT_MAP };
+static filelist_t build_filelist_map(param_t param, DIR *where) {
 
+    filelist_t ret = { filelist_t::FLT_MAP };
+    queue<pair<string, DIR *> > q;
+    q.push(make_pair(param.path, where));
+
+    while (!q.empty()) {
+        pair<string, DIR *> qt = q.front();
+        q.pop();
+
+        files_t temp;
+        struct stat stbuf;
+        dirent *thisfile;
+        bool param_a = check_param(param, PARAM_a);
+        bool param_A = check_param(param, PARAM_A);
+
+        chdir(qt.first.c_str());
+        while ((thisfile = readdir(where)) != NULL) {
+            temp.fst_name = thisfile->d_name;
+            if (!(param_A || param_a)) {
+                if (temp.fst_name[0] == '.')
+                    continue;
+            } else if (param_A) {
+                if (temp.fst_name == "." || temp.fst_name == "..")
+                    continue;
+            }
+            temp.fst_namelen = thisfile->d_reclen;
+
+            if (lstat(thisfile->d_name, &stbuf) == -1) {
+                return filelist_t();
+            }
+            temp.fst_creatime = stbuf.st_ctime;
+            temp.fst_gid = get_groupname(stbuf.st_gid);
+            temp.fst_uid = get_username(stbuf.st_uid);
+            temp.fst_linknum = stbuf.st_nlink;
+            temp.fst_mode = stbuf.st_mode;
+            temp.fst_type = check_type(stbuf.st_mode);
+            temp.fst_size = stbuf.st_size;
+            ret.nmap[qt.first].push_back(temp);
+            if (temp.fst_type == 'd' && temp.fst_name != "." && temp.fst_name != "..") {
+                DIR *newdir = opendir(temp.fst_name.c_str());
+                q.push(make_pair(qt.first + temp.fst_name, newdir));
+            }
+        }
+
+        closedir(where);
+        if (check_param(param, PARAM_f)) {
+            continue;
+        }
+        static auto sort_cmp = [](const files_t a, const files_t b) -> bool {
+            return a.fst_name < b.fst_name;
+        };
+        static auto sort_revcmp = [](const files_t a, const files_t b) -> bool {
+            return a.fst_name > b.fst_name;
+        };
+
+        if (check_param(param, PARAM_r))
+            sort(ret.nmap[qt.first].begin(), ret.nmap[qt.first].end(), sort_revcmp);
+        else
+            sort(ret.nmap[qt.first].begin(), ret.nmap[qt.first].end(), sort_cmp);
+    }
     return ret;
 }
 
-static filelist_t build_filelist_list(const param_t param, DIR *where) {
+static filelist_t build_filelist_list(param_t param, DIR *where) {
     filelist_t ret = { filelist_t::FLT_LIST };
     files_t temp;
     struct stat stbuf;
