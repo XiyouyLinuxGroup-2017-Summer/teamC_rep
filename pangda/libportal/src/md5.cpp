@@ -15,36 +15,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
-#include<portal/socket.h>
-#include<portal/global.h>
-#include<arpa/inet.h>
-#include<cstring>
+#include<portal/crypt.h>
+#include<cstdio>
 
-using libportal::TCPSocket;
+using libportal::CryptMD5;
 
-TCPSocket::TCPSocket() {
-    static const int addr_mode = ADDR_IPV4;
-
-    socket_fd = socket(addr_mode, CONN_TCP, 0);
-    if (socket_fd < 0) {
-        libportal::lib_error("");
+std::string CryptMD5::encrypt(const std::string &dat) {
+    unsigned char buf[ENCRYPTLEN];
+    std::string ret;
+    char tmp[3] = { 0 };
+    MD5((const unsigned char *)dat.c_str(), dat.length(), buf);
+    for (int i = 0; i < ENCRYPTLEN; i++) {
+        sprintf(tmp, "%02x", (int)buf[i]);
+        ret += tmp;
     }
-}
-
-int TCPSocket::Connect(std::string address, unsigned int port) {
-    sockaddr_in addr;
-    addr.sin_family = ADDR_IPV4;
-    addr.sin_port = htons(port);
-    memset(&addr, 0, sizeof(addr));
-
-    if (inet_pton(AF_INET, address.c_str(), &addr.sin_addr) <= 0) {
-        libportal::lib_error("");
-        return -1;
-    }
-
-    if (connect(socket_fd, (sockaddr *)&addr, sizeof(addr)) < 0) {
-        libportal::lib_error("");
-        return -1;
-    }
-    return 0;
+    return ret;
 }
