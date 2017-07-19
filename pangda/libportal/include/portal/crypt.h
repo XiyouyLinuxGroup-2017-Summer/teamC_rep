@@ -18,6 +18,7 @@
 #include<openssl/ssl.h>
 #include<openssl/err.h>
 #include<openssl/rsa.h>
+#include<openssl/md5.h>
 #include<openssl/pem.h>
 #include<string>
 #include<vector>
@@ -32,6 +33,13 @@ private:
 public:
     static std::string decrypt(const std::string, const std::string&);
     static std::string encrypt(const std::string, const std::string&);
+};
+
+class CryptMD5 {
+private:
+    static const int ENCRYPTLEN = 1024;
+public:
+    static std::string encrypt(const std::string&);
 };
 
 }

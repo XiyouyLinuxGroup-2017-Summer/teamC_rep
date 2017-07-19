@@ -71,14 +71,14 @@ std::string CryptRSA::decrypt(const std::string prikey_filename, const std::stri
         return "";
     }
     int pklen = RSA_size(decrypt_key);
-    char* pret_temp = new char[pklen + 1];
+    char *pret_temp = new char[pklen + 1];
 
     int test = RSA_private_decrypt(dat.length(), (const unsigned char*)dat.c_str(),
                                   (unsigned char*)pret_temp, decrypt_key, RSA_PKCS1_PADDING);
     if(test >= 0) {
         ret = std::string(pret_temp, test);
     }
-    delete [] pret_temp;
+    delete[] pret_temp;
     RSA_free(decrypt_key);
     fclose(prikey_file);
     CRYPTO_cleanup_all_ex_data();
