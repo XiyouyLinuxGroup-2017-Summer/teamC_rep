@@ -25,7 +25,7 @@ int main(int argc,char *argv[]) {
 	char *file_name;
 
 	if(argc != 3) {
-		printf("the num of paramater is wrong\n");
+		printf("%s <file name> <mode>\n",argv[0]);
 	}
 	
 	mode = atoi(argv[2]);
@@ -38,8 +38,10 @@ int main(int argc,char *argv[]) {
 
 	file_name = argv[1];
 
-	if(fd = open(file_name,O_CREAT|O_EXCL,mode) == -1) {
-		printf("open:%s with errno:%d\n",strerror(errno),errno);//strerror()在string.h库中,errno是记录系统的最后一次错误代码。代码是一个int型的值，在errno.h中定义。strerror(errno)表示错误的具体信息。
+	if(fd = open(file_name,O_CREAT|O_EXCL,mode) == -1) { //creat(file_name,S_IRWXU);
+		printf("open:%s with errno:%d\n",strerror(errno),errno);
+		//strerror()在string.h库中,errno是记录系统的最后一次错误代码。代码是一个int型的值，在errno.h中定义。
+		//strerror(errno)表示错误的具体信息。
 		exit(1);
 	} else {
 		printf("the file create successfully\n");
