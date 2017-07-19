@@ -1,6 +1,7 @@
 #include<pangda/ls.h>
 #include<pwd.h>
 #include<grp.h>
+#include<errno.h>
 #include<queue>
 using std::pair;
 using std::make_pair;
@@ -59,7 +60,6 @@ static filelist_t build_filelist_map(param_t param, DIR *where) {
                 statp = qt.first + '/' +statp;
 
             if (lstat(statp.c_str(), &stbuf) == -1) {
-                printf("##lstat,continue here.path:%s,errno:%d##", statp.c_str(), errno); getchar();
                 continue;
             }
             temp.fst_creatime = stbuf.st_ctime;
@@ -109,7 +109,7 @@ static filelist_t build_filelist_list(param_t param, DIR *where) {
 
     chdir(param.path.c_str());
     if (where == NULL) {
-        printf("Permission Denined.\n");
+        perror("ls");
         exit(-1);
     }
     while ((thisfile = readdir(where)) != NULL) {
