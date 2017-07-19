@@ -6,7 +6,8 @@
 using namespace std;
 using namespace libportal;
 int main() {
-    string a = CryptMD5::encrypt("hello,world");
-    cout << a << endl;
+    string a = CryptRSA::encrypt("pubkey.pem", "gaygayxiaoyuan");
+    cout << "Before Decrypt:" << a << endl << endl;;
+    cout << "After Decrypt:" << CryptRSA::decrypt("prikey.pem", a) << endl;
     return 0;
 }
