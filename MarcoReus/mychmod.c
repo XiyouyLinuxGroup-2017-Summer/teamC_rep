@@ -17,18 +17,22 @@ int main(int argc,char *argv[]) {
 	int mode_o;		//其他人权限
 	char *file_name;
 
+	/*判断参数是否符合要求*/
 	if(argc < 3) {
-		printf("参数个数不符合要求\n");
+		printf("%s <file name> <mode>\n",argv[0]);
 		exit(0);
 	}
 
+	/*atoi将字符串转化成int*/
 	mode = atoi(argv[1]);
 	
+	/*判断mode是否符合要求*/
 	if(mode < 0 || mode > 777) {
-		printf("参数错误\n");
+		printf("mode is wrong\n");
 		exit(0);
 	}
-/*chmod()识别八进制，转换进制*/
+
+	/*chmod()识别八进制，转换进制*/
 	mode_u = mode/100;
 	mode_g = (mode/10)%10;
 	mode_o = mode%10;
@@ -37,7 +41,7 @@ int main(int argc,char *argv[]) {
 	file_name = argv[2];
 
 	if(chmod(file_name,mode) == -1) {
-		perror("修改失败\n");
+		perror("chmod fail\n");
 		exit(0);
 	}
 
