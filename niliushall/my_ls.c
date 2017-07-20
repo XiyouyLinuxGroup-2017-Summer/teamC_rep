@@ -31,7 +31,8 @@ int len_leave = MAXROWLEN;//该行剩余长度
 int len_max;//最长文件名的长度
 int count_dir;
 int flag;
-char name_dir[256][NAME_MAX + 1];
+int dir_i;
+char name_dir[10000][160];
 
 void err(const char *err_string, int line){
     fprintf(stderr, "line: %d  ", line);
@@ -63,33 +64,45 @@ void display_attribute(struct stat buf, char *name){
 
     /*文件所有者权限*/
     if(buf.st_mode & S_IRUSR)
-    printf("r");
-    else if(buf.st_mode & S_IWUSR)
-    printf("w");
-    else if(buf.st_mode & S_IXUSR)
-    printf("w");
+        printf("r");
+    else
+        printf("-");
+    if(buf.st_mode & S_IWUSR)
+        printf("w");
+    else
+        printf("-");
+    if(buf.st_mode & S_IXUSR)
+        printf("w");
     else 
-    printf("-");
+        printf("-");
 
     /*文件所属用户组权限*/
     if(buf.st_mode & S_IRGRP)
-    printf("r");
-    else if(buf.st_mode & S_IWGRP)
-    printf("w");
-    else if(buf.st_mode & S_IXGRP)
-    printf("x");
-    else 
+        printf("r");
+    else
+        printf("-");
+    if(buf.st_mode & S_IWGRP)
+        printf("w");
+    else
     printf("-");
+    if(buf.st_mode & S_IXGRP)
+        printf("x");
+    else 
+        printf("-");
 
     /*其他用户权限*/
     if(buf.st_mode & S_IROTH)
-    printf("r");
-    else if(buf.st_mode & S_IWOTH)
-    printf("w");
-    else if(buf.st_mode & S_IXOTH)
-    printf("x");
+        printf("r");
+    else
+        printf("-");
+    if(buf.st_mode & S_IWOTH)
+        printf("w");
+    else
+        printf("-");
+    if(buf.st_mode & S_IXOTH)
+        printf("x");
     else 
-    printf("-");
+        printf("-");
 
     printf("  ");
 
@@ -132,7 +145,7 @@ void display_single(char *name){
 void display(int flag, char *pathname){
     int i, j;
     struct stat buf;
-    char name[NAME_MAX + 1];
+    char name[160];
 
     /*从路径中解析文件名*/
     for(i = 0, j = 0 ; i < strlen(pathname); i++){
@@ -177,6 +190,7 @@ void display(int flag, char *pathname){
                     pathname[strlen(pathname)] = 0;
                     strcpy(name_dir[count_dir++], pathname);
                     name_dir[count_dir - 1][strlen(pathname)] = 0;
+                    flag = 0;
                 }
                 display_single(name);
             } 
@@ -192,6 +206,7 @@ void display(int flag, char *pathname){
                 pathname[strlen(pathname) + 1] = 0;
                 pathname[strlen(pathname)] = '/';
                 strcpy(name_dir[count_dir++], pathname);
+                flag = 0;
             }
             display_single(name);
             break;
@@ -202,6 +217,7 @@ void display(int flag, char *pathname){
                     pathname[strlen(pathname) + 1] = 0;
                     pathname[strlen(pathname)] = '/';
                     strcpy(name_dir[count_dir++], pathname);
+                    flag = 0;
                 }
                 display_attribute(buf, name);
                 printf("  %-s\n", name);            
@@ -213,6 +229,7 @@ void display(int flag, char *pathname){
                 pathname[strlen(pathname) + 1] = 0;
                 pathname[strlen(pathname)] = '/';
                 strcpy(name_dir[count_dir++], pathname);
+                flag = 0;
             }
             display_attribute(buf, name);
             printf("  %-s\n", name);
@@ -225,7 +242,7 @@ void display_dir(int flag_param, char *path){
     int count = 0;
     DIR *dir;
     struct dirent *ptr;
-    char filename[256][PATH_MAX + 1], temp[PATH_MAX + 1];
+    char filename[10000][160], temp[160];
 
     if((dir = opendir(path)) < 0){
         err("open", __LINE__);
@@ -233,13 +250,16 @@ void display_dir(int flag_param, char *path){
 
     /*获取最长文件名和文件个数*/
     while((ptr = readdir(dir)) != NULL){
+        if(ptr == NULL){
+            err("readdir", __LINE__);
+        }
         if(len_max < strlen(ptr->d_name))
         len_max = strlen(ptr->d_name);
         count++;
     }
     closedir(dir);
 
-    if(count > 256){
+    if(count > 100000){
         err("too many files under this dir", __LINE__);
     }
 
@@ -274,18 +294,18 @@ void display_dir(int flag_param, char *path){
         display(flag_param, filename[i]);
     }
 
-    j = count_dir;
     if(!flag){
-        for(i = 0; i < j; i++){
+        for(dir_i; dir_i < count_dir; dir_i++){
             flag = 1;
-            printf("\n\n\n%s:\n", name_dir[i]);
-            display_dir(flag_param, name_dir[i]);
+            printf("\n\n\n%s:\n", name_dir[dir_i]);
+            display_dir(flag_param, name_dir[dir_i]);
             printf("\n");
         }
     }
-    count_dir = 0;
+    //count_dir = 0;
     closedir(dir);
-
+for(i=0;i<count_dir;i++)
+    printf("\ndir:%s\n",name_dir[i]);
     if(flag_param & PARAM_L == 0){
         printf("\n");
     }
@@ -296,7 +316,7 @@ void display_dir(int flag_param, char *path){
 int main (int argc, char **argv)
 {
     int i, j = 0, k, num = 0;
-    char path[PATH_MAX + 1];
+    char path[160];
     char param[32];
     int flag_param = PARAM_NONE;
     struct stat buf;
@@ -359,6 +379,5 @@ int main (int argc, char **argv)
             i++;
         }
     }while(i < argc);
-
     return 0;
 }
