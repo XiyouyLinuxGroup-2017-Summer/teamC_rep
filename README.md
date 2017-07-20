@@ -1,2 +1,19 @@
 # Team C's Repository
-This repository is using for Xiyou Linux Group's daily work in 2017 summer
+
+## Blog & Github
+
+chudongfang CSDN  : http://blog.csdn.net/chudongfang2015
+
+chudongfang GitHub: https://github.com/chudongfang
+
+yinjianxiang CSDN :http://blog.csdn.net/yinjianxiang
+
+yinjianxiang GitHub:https://github.com/yinjianxiang
+
+louzehao CSDN : http://blog.csdn.net/hepangda
+
+louzehao Github : https://github.com/hepangda
+
+axin   CSDN :  http://blog.csdn.net/fengxinlinux     Welcome to visit
+
+axin   Github: https://github.com/fengxinlinux
