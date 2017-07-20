@@ -1,27 +1,36 @@
-#include<stdio.h>
-#define input(ret) {char c; ret = 0; while((c = getchar()) < '0' || c > '9'); while (c >= '0' && c <= '9') ret = ret * 10 + (c - '0'), c = getchar();}
+#include<cstdio>
+#include<stack>
+
+using namespace std;
+
 int main() {
 	int cas;
-	input(cas);
+	scanf("%d", &cas);
+	getchar();
 	while (cas--) {
-		char tmp, t[1001];
-		int tsz = 0;
-		while (tmp = getchar()) {
-			if (tmp == ' ' || tmp == '\n') {
-				for (int i = tsz - 1; i >= 0; i--)
-					putchar(t[i]);
-				tsz = 0;
-
-				if (tmp == '\n') {
-					putchar('\n');
-					break;
-				} else {
-					putchar(' ');
+		stack<char> S;
+		char t;
+		while (t = getchar()) {
+			if (t == ' ') {
+				while (!S.empty()) {
+					t = S.top();
+					S.pop();
+					putchar(t);
 				}
+				putchar(' ');
+			} else if (t == '\n') {
+				while (!S.empty()) {
+					t = S.top();
+					S.pop();
+					putchar(t);
+				}
+				putchar('\n');
+				break;
 			} else {
-				t[tsz++] = tmp;
+				S.push(t);
 			}
 		}
+
 	}
 	return 0;
 }
