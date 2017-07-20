@@ -176,7 +176,7 @@ void display(int flag, char *pathname){
                     pathname[strlen(pathname)] = '/';
                     pathname[strlen(pathname)] = 0;
                     strcpy(name_dir[count_dir++], pathname);
-    printf("\n\n-- %s   %s  ---\n\n", name_dir[count_dir-1], pathname);
+                    name_dir[count_dir - 1][strlen(pathname)] = 0;
                 }
                 display_single(name);
             } 
@@ -187,9 +187,36 @@ void display(int flag, char *pathname){
             printf("  %-s\n", name);
             break;
 
-        /*case PARAM_A + PARAM_R:
-        display(flag, )
-        */
+        case PARAM_A + PARAM_R:
+            if(S_ISDIR(buf.st_mode) && name[0] != '.'){
+                pathname[strlen(pathname) + 1] = 0;
+                pathname[strlen(pathname)] = '/';
+                strcpy(name_dir[count_dir++], pathname);
+            }
+            display_single(name);
+            break;
+
+        case PARAM_L + PARAM_R:
+            if(name[0] != '.'){
+                if(S_ISDIR(buf.st_mode)){
+                    pathname[strlen(pathname) + 1] = 0;
+                    pathname[strlen(pathname)] = '/';
+                    strcpy(name_dir[count_dir++], pathname);
+                }
+                display_attribute(buf, name);
+                printf("  %-s\n", name);            
+            }
+            break;
+           
+        case PARAM_R + PARAM_A + PARAM_L:
+            if(S_ISDIR(buf.st_mode) && name[0] != '.'){
+                pathname[strlen(pathname) + 1] = 0;
+                pathname[strlen(pathname)] = '/';
+                strcpy(name_dir[count_dir++], pathname);
+            }
+            display_attribute(buf, name);
+            printf("  %-s\n", name);
+            break;
     }
 }
 
@@ -246,8 +273,10 @@ void display_dir(int flag_param, char *path){
     for(i = 0; i < count; i++){
         display(flag_param, filename[i]);
     }
+
+    j = count_dir;
     if(!flag){
-        for(i = 0; i < count_dir; i++){
+        for(i = 0; i < j; i++){
             flag = 1;
             printf("\n\n\n%s:\n", name_dir[i]);
             display_dir(flag_param, name_dir[i]);
@@ -261,7 +290,7 @@ void display_dir(int flag_param, char *path){
         printf("\n");
     }
     flag = 0;
-    
+     
 }
 
 int main (int argc, char **argv)
