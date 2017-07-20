@@ -10,6 +10,6 @@ yinjianxiang CSDN :http://blog.csdn.net/yinjianxiang
 
 yinjianxiang GitHub:https://github.com/yinjianxiang
 
-louzehao CSDN : http://blog.hepangda.com
+louzehao CSDN : http://blog.csdn.net/hepangda
 
 louzehao Github : https://github.com/hepangda
