@@ -1,2 +1,4 @@
 # Team C's Repository
-This repository is using for Xiyou Linux Group's daily work in 2017 summer
+chudongfang CSDN  : http://blog.csdn.net/chudongfang2015
+
+chudongfang GitHub: https://github.com/chudongfang
