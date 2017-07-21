@@ -26,21 +26,21 @@ void display_dir(int flag_param, char *path);
 #define PARAM_R 4       // -R
 #define PARAM_r 8       // -r
 #define MAXROWLEN 160    //一行显示的最多字符数
-
+int sum = 0;
 int len_leave = MAXROWLEN;//该行剩余长度
 int len_max;//最长文件名的长度
 int count_dir;
 int flag;
 int dir_i;
-char name_dir[8000][256];
+char name_dir[150000][256];
 
 void err(const char *err_string, int line){
     fprintf(stderr, "line: %d  ", line);
     perror(err_string);
-    /*if(errno == 13)
-        ;
-    else
-        exit(1);*/
+    if(errno == 13)
+        fprintf(stdin, "1000\n");
+    //else
+      //  exit(1);*/
 }
 
 /*获取并打印文件属性*/
@@ -48,13 +48,19 @@ void display_attribute(struct stat buf, char *name){
     char buf_time[32];
     struct passwd *psd;//结构体中获取文件所有者的用户名
     struct group *grp;//结构体中获取用户组名
+//printf("2-----\n");
     
     /*根据uid与gid获取用户所有者与用户组名称*/
-    psd = getpwuid(buf.st_uid);
+    if((psd = getpwuid(buf.st_uid)) == NULL){
+        err("getpwuid", __LINE__);
+        return;
+    }
+    
     if((grp = getgrgid(buf.st_gid)) == NULL){
         err("getgruid", __LINE__);
-    return;
-}
+        return;
+    }
+//printf("1----\n");
 
     /*文件类型*/
     if(S_ISLNK(buf.st_mode))//符号链接文件
@@ -113,7 +119,6 @@ void display_attribute(struct stat buf, char *name){
         printf("-");
 
     printf("  ");
-
     printf("%4ld ", buf.st_nlink);//文件连接数
 
     printf("%-8s", psd->pw_name);
@@ -161,10 +166,12 @@ void display(int flag, char *pathname){
         }
     }
     name[j] = 0;
+//printf("4-----\n");
     /*用lstat以方便解析链接文件*/
     if(lstat(pathname, &buf) == -1){
         printf("%s\n", pathname);
         err("lstat", __LINE__);
+        if(errno == 13){}
     }
     switch(flag){
         case PARAM_NONE:
@@ -192,6 +199,7 @@ void display(int flag, char *pathname){
                     strcpy(name_dir[count_dir++], pathname);
                     name_dir[count_dir - 1][strlen(pathname)] = 0;
                     flag = 0;
+                    sum++;
                 }
                 display_single(name);
             } 
@@ -208,6 +216,7 @@ void display(int flag, char *pathname){
                 pathname[strlen(pathname)] = '/';
                 strcpy(name_dir[count_dir++], pathname);
                 flag = 0;
+                sum++;
             }
             display_single(name);
             break;
@@ -231,7 +240,9 @@ void display(int flag, char *pathname){
                 pathname[strlen(pathname)] = '/';
                 strcpy(name_dir[count_dir++], pathname);
                 flag = 0;
+                sum++;
             }
+//printf("3-----\n");
             display_attribute(buf, name);
             printf("  %-s\n", name);
             break;
@@ -243,23 +254,43 @@ void display_dir(int flag_param, char *path){
     int count = 0;
     DIR *dir;
     struct dirent *ptr;
-    char filename[1000][256], temp[256];
+    char temp[256];
+    //char **filename;
+    char filename[15000][256];
 
     if((dir = opendir(path)) < 0){
         err("open", __LINE__);
     }
+//printf("5-----\n");
 
     /*获取最长文件名和文件个数*/
-    while((ptr = readdir(dir)) != NULL){
+    while(ptr = readdir(dir)){
+//printf("\n7-----\n");
         if(ptr == NULL){
             err("readdir", __LINE__);
+            return;
         }
         if(len_max < strlen(ptr->d_name))
         len_max = strlen(ptr->d_name);
         count++;
     }
+    
+    /*filename = (char **)malloc(count - 1);
+    if(filename == NULL){
+        err("malloc", __LINE__);
+        exit(1);
+    }
+    for(i = 0; i < count - 1; i++){
+        filename[i] = (char *)malloc(256);
+        if(filename[i] == NULL){
+            err("malloc", __LINE__);
+            exit(1);
+        }
+    }*/
+
     closedir(dir);
-    if(count > 100000){
+//printf("6-----\n");
+    if(count > 10000){
         err("too many files under this dir", __LINE__);
     }
 
@@ -292,6 +323,7 @@ void display_dir(int flag_param, char *path){
             }
         }
     }
+printf("\nsum: %d\n",sum);
     for(i = 0; i < count; i++){
         display(flag_param, filename[i]);
     }
