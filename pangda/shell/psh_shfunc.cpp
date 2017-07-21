@@ -20,8 +20,11 @@ std::string get_tip() {
         if (curdir[i] == '/')
             lastpos = i;
     }
-    ret += std::string(curdir).substr(lastpos + 1);
-    ret += "] ";
+    std::string where = std::string(curdir).substr(lastpos + 1);
+    if (where == "")
+        where = "/";
+    ret += where;
+    ret += "]$ ";
     free(curdir);
     return ret;
 }
@@ -39,17 +42,21 @@ int psh_error(int error) {
     return -1;
 }
 
-std::string string_trim(std::string s) {  
-    if(s.empty()) {  
-        return s;  
-    }  
-    s.erase(0,s.find_first_not_of(" "));  
-    s.erase(s.find_last_not_of(" ") + 1);  
-    return s;  
+std::string string_trim(std::string s) {
+    if(s.empty()) {
+        return s;
+    }
+    s.erase(0,s.find_first_not_of(" "));
+    s.erase(s.find_last_not_of(" ") + 1);
+    return s;
 }
 
 int shellfunc_cd(command_t cmdt) {
-
+    if (chdir(cmdt.arguments[1].c_str()) != 0) {
+        perror("psh");
+        return -1;
+    }
+    return 0;
 }
 
 int shellfunc_exit(command_t cmdt) {

@@ -7,7 +7,7 @@
 #include<functional>
 
 std::map<std::string, std::function<int(command_t)> > shell_commands;
-
+extern char **envir;
 static std::vector<std::string> split_string(std::string str, char sep) {
     std::vector<std::string> ret;
     unsigned int start = 0;
@@ -130,10 +130,9 @@ int exec_command(command_t &cmd) {
             dup2(fd, STDOUT_FILENO);
         }
 
-        int ret = execvp(path.c_str(), arglist);
+        int ret = execve(path.c_str(), arglist, envir);
         
         if (ret == -1) {
-            printf("execfailed, path = %s\n", path.c_str());
             perror("psh");
         }
         exit(0);    //end child process
