@@ -24,8 +24,10 @@ std::map<std::string, std::string> shell_alias;
 std::map<std::string, std::function<int()> > shell_commands;
 
 int main(int argc, char *argv[], char **envp) {
-    std::string st = readline("psh @ ");
-    command_t cmd = prase_command(st);
-    exec_command(cmd);
+    while (true) {
+        std::string st = readline("psh @ ");
+        command_t cmd = prase_command(st);
+        exec_command(cmd);
+    }
     return 0;
 }
