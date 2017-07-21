@@ -38,7 +38,7 @@ void err(const char *err_string, int line){
     fprintf(stderr, "line: %d  ", line);
     perror(err_string);
     if(errno == 13)
-        fprintf(stdin, "1000\n");
+        fprintf(stdin, "无权限\n");
     //else
       //  exit(1);*/
 }
@@ -236,6 +236,8 @@ void display(int flag, char *pathname){
            
         case PARAM_R + PARAM_A + PARAM_L:
             if(S_ISDIR(buf.st_mode) && name[0] != '.'){
+                if(strcmp(name, "gvfs") == 0)
+                    break;
                 pathname[strlen(pathname) + 1] = 0;
                 pathname[strlen(pathname)] = '/';
                 strcpy(name_dir[count_dir++], pathname);
@@ -264,11 +266,11 @@ void display_dir(int flag_param, char *path){
 //printf("5-----\n");
 
     /*获取最长文件名和文件个数*/
-    while(ptr = readdir(dir)){
+    while((ptr = readdir(dir))){
 //printf("\n7-----\n");
         if(ptr == NULL){
             err("readdir", __LINE__);
-            return;
+            break;
         }
         if(len_max < strlen(ptr->d_name))
         len_max = strlen(ptr->d_name);
@@ -323,7 +325,7 @@ void display_dir(int flag_param, char *path){
             }
         }
     }
-printf("\nsum: %d\n",sum);
+//printf("\nsum: %d\n",sum);
     for(i = 0; i < count; i++){
         display(flag_param, filename[i]);
     }
