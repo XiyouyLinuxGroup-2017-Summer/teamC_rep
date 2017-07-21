@@ -19,11 +19,16 @@ struct command_t {
     std::string filename_out;
     bool is_background = false;
     bool is_pipe = false;
-    int pipe_nextno; //next command saved in where?
+    std::string pipe_prompt[2];
 };
 
 
 command_t prase_command(std::string command);
-void exec_command(command_t &cmd);
+std::string string_trim(std::string s);
+std::string get_tip();
+int exec_command(command_t &cmd);
 int psh_error(int error);
+int shellfunc_exit(command_t);
+int shellfunc_logout(command_t);
+int shellfunc_cd(command_t);
 #endif

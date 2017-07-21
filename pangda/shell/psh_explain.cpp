@@ -3,6 +3,10 @@
 #include<dirent.h>
 #include<fcntl.h>
 #include<cstring>
+#include<map>
+#include<functional>
+
+std::map<std::string, std::function<int(command_t)> > shell_commands;
 
 static std::vector<std::string> split_string(std::string str, char sep) {
     std::vector<std::string> ret;
@@ -19,9 +23,11 @@ static std::vector<std::string> split_string(std::string str, char sep) {
 
 static std::string find_exec(command_t &cmd) {
     //fixme: below to check if command is shell-builtin function
-
-
-
+    if (shell_commands.find(cmd.execfile) != shell_commands.end()) {
+        shell_commands[cmd.execfile](cmd);
+        cmd.is_right_cmd = 1; //built-in function
+        return "";
+    }
     //fixme: above to check if command is shell-builtin function
     std::vector<std::string> envpath = split_string(getenv("PATH"), ':');
     envpath.push_back("./");
@@ -56,20 +62,19 @@ static std::string find_exec(command_t &cmd) {
     return "";
 }
 
-void exec_command(command_t &cmd) {
+int exec_command(command_t &cmd) {
     if (cmd.is_right_cmd) {
         psh_error(cmd.is_right_cmd);
-        return;
+        return -1;
     }
 
     std::string path = find_exec(cmd);
     if (cmd.is_right_cmd) {
         psh_error(cmd.is_right_cmd);
-        return;
+        return -1;
     }
 
-    //FIXME: 没有去除掉>和>后的内容
-    char *arglist[cmd.arguments.size() + 2];
+    char *arglist[cmd.arguments.size() + 1];
     char args[200][256];
     //strcpy(args[0], cmd.execfile.c_str());
     //arglist[0] = (char *)args[0];
@@ -78,23 +83,28 @@ void exec_command(command_t &cmd) {
         arglist[i] = (char *)args[i];
     }
     arglist[cmd.arguments.size()] = (char *)NULL;
+/****lookup
+    for (auto i : arglist) {
+        std::cout << i << std::endl;
+    }
 
-
+    getchar();getchar();
+*****/
     pid_t child = fork();
     if (child < 0) {
         psh_error(200); //fork error
-        return;
+        return -1;
     }
 
     //father process need to handle background problem && pipe
     if (child > 0) {
         if (cmd.is_background) {
             printf("[Process id] %d\n", (int)child);
-            return;
+            return 0;
         } else {
             int ret;
             wait(&ret);
-            return;
+            return 0;
         }
     }
 
@@ -103,21 +113,23 @@ void exec_command(command_t &cmd) {
         if (cmd.is_redirect_stdin) {
             int fd = open(cmd.filename_in.c_str(), O_RDONLY);
             if (fd < 0) {
+                perror("psh");
                 psh_error(201); //redirect_stdin file doesn't exist.
-                return;
+                exit(0);
             }
             dup2(fd, STDIN_FILENO);
         }
 
         if (cmd.is_redirect_stdout) {
             mode_t mode = S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH;
-            int fd = open(cmd.filename_out.c_str(), O_WRONLY | O_CREAT, mode);
+            int fd = open(cmd.filename_out.c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
             if (fd < 0) {
                 psh_error(202); //redirect_stdout file doesn't exist.
-                return;
+                exit(0);
             }
             dup2(fd, STDOUT_FILENO);
         }
+
         int ret = execvp(path.c_str(), arglist);
         
         if (ret == -1) {
@@ -126,4 +138,5 @@ void exec_command(command_t &cmd) {
         }
         exit(0);    //end child process
     }
+    return -1;
 }
