@@ -3,6 +3,9 @@
 int psh_error(int error) {
     switch (error) {
     //fixme： add error
+    case 100:
+        printf("psh: command not found.\n");
+
     }
     return -1;
 }
