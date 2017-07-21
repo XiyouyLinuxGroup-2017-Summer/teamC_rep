@@ -32,12 +32,15 @@ int len_max;//最长文件名的长度
 int count_dir;
 int flag;
 int dir_i;
-char name_dir[10000][160];
+char name_dir[8000][256];
 
 void err(const char *err_string, int line){
     fprintf(stderr, "line: %d  ", line);
     perror(err_string);
-    exit(1);
+    /*if(errno == 13)
+        ;
+    else
+        exit(1);*/
 }
 
 /*获取并打印文件属性*/
@@ -45,6 +48,13 @@ void display_attribute(struct stat buf, char *name){
     char buf_time[32];
     struct passwd *psd;//结构体中获取文件所有者的用户名
     struct group *grp;//结构体中获取用户组名
+    
+    /*根据uid与gid获取用户所有者与用户组名称*/
+    psd = getpwuid(buf.st_uid);
+    if((grp = getgrgid(buf.st_gid)) == NULL){
+        err("getgruid", __LINE__);
+    return;
+}
 
     /*文件类型*/
     if(S_ISLNK(buf.st_mode))//符号链接文件
@@ -61,7 +71,6 @@ void display_attribute(struct stat buf, char *name){
     printf("f");
     else if(S_ISSOCK(buf.st_mode))//socket文件
     printf("s");
-
     /*文件所有者权限*/
     if(buf.st_mode & S_IRUSR)
         printf("r");
@@ -75,7 +84,6 @@ void display_attribute(struct stat buf, char *name){
         printf("w");
     else 
         printf("-");
-
     /*文件所属用户组权限*/
     if(buf.st_mode & S_IRGRP)
         printf("r");
@@ -108,18 +116,13 @@ void display_attribute(struct stat buf, char *name){
 
     printf("%4ld ", buf.st_nlink);//文件连接数
 
-    /*根据uid与gid获取用户所有者与用户组名称*/
-    psd = getpwuid(buf.st_uid);
-    grp = getgrgid(buf.st_gid);
     printf("%-8s", psd->pw_name);
     printf("%-8s", grp->gr_name);
-
     printf("%6ld", buf.st_size);//文件大小
     strcpy(buf_time, ctime(&buf.st_mtime));
     buf_time[strlen(buf_time) - 1] = 0;//去掉换行符
     printf("  %s", buf_time);
-    }
-
+}
 /*无参数，打印文件名，上下对齐*/
 void display_single(char *name){
     int i, len;
@@ -145,7 +148,7 @@ void display_single(char *name){
 void display(int flag, char *pathname){
     int i, j;
     struct stat buf;
-    char name[160];
+    char name[256];
 
     /*从路径中解析文件名*/
     for(i = 0, j = 0 ; i < strlen(pathname); i++){
@@ -158,13 +161,11 @@ void display(int flag, char *pathname){
         }
     }
     name[j] = 0;
-
     /*用lstat以方便解析链接文件*/
     if(lstat(pathname, &buf) == -1){
         printf("%s\n", pathname);
         err("lstat", __LINE__);
     }
-
     switch(flag){
         case PARAM_NONE:
         if(name[0] != '.'){
@@ -242,7 +243,7 @@ void display_dir(int flag_param, char *path){
     int count = 0;
     DIR *dir;
     struct dirent *ptr;
-    char filename[10000][160], temp[160];
+    char filename[1000][256], temp[256];
 
     if((dir = opendir(path)) < 0){
         err("open", __LINE__);
@@ -258,13 +259,15 @@ void display_dir(int flag_param, char *path){
         count++;
     }
     closedir(dir);
-
     if(count > 100000){
         err("too many files under this dir", __LINE__);
     }
 
     /*获取该目录下所有文件名*/
     dir = opendir(path);
+    if(dir == NULL){
+        err("opendir",__LINE__);
+    }
     for(i = 0; i < count; i++){
         if((ptr = readdir(dir)) == NULL){
             err("readdir", __LINE__);
@@ -289,11 +292,9 @@ void display_dir(int flag_param, char *path){
             }
         }
     }
-
     for(i = 0; i < count; i++){
         display(flag_param, filename[i]);
     }
-
     if(!flag){
         for(dir_i; dir_i < count_dir; dir_i++){
             flag = 1;
@@ -304,8 +305,6 @@ void display_dir(int flag_param, char *path){
     }
     //count_dir = 0;
     closedir(dir);
-for(i=0;i<count_dir;i++)
-    printf("\ndir:%s\n",name_dir[i]);
     if(flag_param & PARAM_L == 0){
         printf("\n");
     }
@@ -316,7 +315,7 @@ for(i=0;i<count_dir;i++)
 int main (int argc, char **argv)
 {
     int i, j = 0, k, num = 0;
-    char path[160];
+    char path[256];
     char param[32];
     int flag_param = PARAM_NONE;
     struct stat buf;
