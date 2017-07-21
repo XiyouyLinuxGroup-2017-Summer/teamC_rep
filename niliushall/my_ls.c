@@ -194,8 +194,8 @@ void display(int flag, char *pathname){
         case PARAM_R:
             if(name[0] != '.'){
                 if(S_ISDIR(buf.st_mode)){
+                    pathname[strlen(pathname) + 1] = 0;
                     pathname[strlen(pathname)] = '/';
-                    pathname[strlen(pathname)] = 0;
                     strcpy(name_dir[count_dir++], pathname);
                     name_dir[count_dir - 1][strlen(pathname)] = 0;
                     flag = 0;
