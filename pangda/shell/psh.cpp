@@ -22,10 +22,12 @@ ls -l / | wc -c
 extern std::map<std::string, std::function<int(command_t)> > shell_commands;
 
 std::map<std::string, std::string> shell_alias;
-
+char **envir;
 int main(int argc, char *argv[], char **envp) {
+    envir = envp;
     shell_commands["exit"] = shellfunc_exit;
     shell_commands["logout"] = shellfunc_logout;
+    shell_commands["cd"] = shellfunc_cd;
     while (true) {
         std::string st = readline(get_tip().c_str());
         if (string_trim(st) == "")
