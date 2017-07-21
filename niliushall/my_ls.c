@@ -403,7 +403,9 @@ int main (int argc, char **argv)
                     path[ strlen(argv[i]) ] = '/';
                     path[ strlen(argv[i]) + 1 ] = 0;
                 }
-                else
+                else{
+                    path[ strlen(argv[i]) ] = 0;
+                }
                 display_dir(flag_param, path);
             }
             else{
