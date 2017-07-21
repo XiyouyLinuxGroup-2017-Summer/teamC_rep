@@ -17,6 +17,8 @@
 #include <grp.h>
 #include <pwd.h>
 #include <errno.h>
+#include <sys/ioctl.h>
+#include <termios.h>
 
 void display_dir(int flag_param, char *path);
 
@@ -25,9 +27,10 @@ void display_dir(int flag_param, char *path);
 #define PARAM_L 2       // -l
 #define PARAM_R 4       // -R
 #define PARAM_r 8       // -r
-#define MAXROWLEN 160    //一行显示的最多字符数
+#define MAXROWLEN  140  //一行显示的最多字符数
+
 int sum = 0;
-int len_leave = MAXROWLEN;//该行剩余长度
+int len_leave = MAXROWLEN; //该行剩余长度
 int len_max;//最长文件名的长度
 int count_dir;
 int flag;
@@ -48,7 +51,6 @@ void display_attribute(struct stat buf, char *name){
     char buf_time[32];
     struct passwd *psd;//结构体中获取文件所有者的用户名
     struct group *grp;//结构体中获取用户组名
-//printf("2-----\n");
     
     /*根据uid与gid获取用户所有者与用户组名称*/
     if((psd = getpwuid(buf.st_uid)) == NULL){
@@ -60,7 +62,6 @@ void display_attribute(struct stat buf, char *name){
         err("getgruid", __LINE__);
         return;
     }
-//printf("1----\n");
 
     /*文件类型*/
     if(S_ISLNK(buf.st_mode))//符号链接文件
@@ -129,15 +130,45 @@ void display_attribute(struct stat buf, char *name){
     printf("  %s", buf_time);
 }
 /*无参数，打印文件名，上下对齐*/
-void display_single(char *name){
+void display_single(char *name, struct stat buf){
     int i, len;
+    int foreground = 0;
+    int background = 1;
+    int colormode = 0;
+    
+    //获取颜色信息
+    if(S_ISLNK(buf.st_mode))//符号链接文件
+        foreground = 36;
+    else if(S_ISREG(buf.st_mode))//一般文件
+        foreground = 37;
+    else if(S_ISDIR(buf.st_mode))//目录文件
+        foreground = 34;
+    else if(S_ISCHR(buf.st_mode)){ //设备文件
+        colormode = 1;
+        foreground = 33;
+        background = 40;
+    }        
+    else if(S_ISBLK(buf.st_mode))//接口设备文件
+    {
+        colormode = 1;
+        foreground = 33;
+        background = 40;
+    }
+    else if(S_ISFIFO(buf.st_mode))//FIFO文件
+    {
+        foreground = 33;
+        background = 40;
+    }
+    else if(S_ISSOCK(buf.st_mode))//socket文件
+        foreground = 35;
 
     if(len_leave < len_max){
         printf("\n");
         len_leave = MAXROWLEN;
     }
 
-    printf("%-s", name);
+    printf("\033[%d;%d;%dm%-s\033[0m",colormode, foreground, background, name);            
+    //printf("%-s", name);
     len = strlen(name);
     len = len_max - len;
 
@@ -155,6 +186,35 @@ void display(int flag, char *pathname){
     struct stat buf;
     char name[256];
 
+    int foreground = 0;
+    int background = 1;
+    int colormode = 0;
+
+    if(S_ISLNK(buf.st_mode))//符号链接文件
+        foreground = 36;
+    else if(S_ISREG(buf.st_mode))//一般文件
+        foreground = 37;
+    else if(S_ISDIR(buf.st_mode))//目录文件
+        foreground = 34;
+    else if(S_ISCHR(buf.st_mode)){ //设备文件
+        colormode = 1;
+        foreground = 33;
+        background = 40;
+    }        
+    else if(S_ISBLK(buf.st_mode))//接口设备文件
+    {
+        colormode = 1;
+        foreground = 33;
+        background = 40;
+    }
+    else if(S_ISFIFO(buf.st_mode))//FIFO文件
+    {
+        foreground = 33;
+        background = 40;
+    }
+    else if(S_ISSOCK(buf.st_mode))//socket文件
+        foreground = 35;
+
     /*从路径中解析文件名*/
     for(i = 0, j = 0 ; i < strlen(pathname); i++){
         if(pathname[i] == '/'){
@@ -166,7 +226,7 @@ void display(int flag, char *pathname){
         }
     }
     name[j] = 0;
-//printf("4-----\n");
+
     /*用lstat以方便解析链接文件*/
     if(lstat(pathname, &buf) == -1){
         printf("%s\n", pathname);
@@ -176,18 +236,18 @@ void display(int flag, char *pathname){
     switch(flag){
         case PARAM_NONE:
         if(name[0] != '.'){
-            display_single(name);
+            display_single(name, buf);
         }
         break;
 
         case PARAM_A:
-        display_single(name);
+        display_single(name, buf);
         break;
 
         case PARAM_L:
         if(name[0] != '.'){
             display_attribute(buf, name);
-            printf("  %-s\n", name);            
+            printf("  \033[%d;%d;%dm%-s\033[0m\n",colormode, foreground, background, name);            
         }
         break;
 
@@ -201,13 +261,14 @@ void display(int flag, char *pathname){
                     flag = 0;
                     sum++;
                 }
-                display_single(name);
+                display_single(name, buf);
             } 
             break;
 
         case PARAM_A + PARAM_L:
             display_attribute(buf, name);
-            printf("  %-s\n", name);
+            printf("  \033[%d;%d;%dm%-s\033[0m\n",colormode, foreground, background, name);            
+            //printf("  %-s\n", name);
             break;
 
         case PARAM_A + PARAM_R:
@@ -218,7 +279,7 @@ void display(int flag, char *pathname){
                 flag = 0;
                 sum++;
             }
-            display_single(name);
+            display_single(name, buf);
             break;
 
         case PARAM_L + PARAM_R:
@@ -230,7 +291,8 @@ void display(int flag, char *pathname){
                     flag = 0;
                 }
                 display_attribute(buf, name);
-                printf("  %-s\n", name);            
+                printf("  \033[%d;%d;%dm%-s\033[0m\n",colormode, foreground, background, name);            
+                //printf("  %-s\n", name);            
             }
             break;
            
@@ -244,9 +306,9 @@ void display(int flag, char *pathname){
                 flag = 0;
                 sum++;
             }
-//printf("3-----\n");
             display_attribute(buf, name);
-            printf("  %-s\n", name);
+            printf("  \033[%d;%d;%dm%-s\033[0m\n",colormode, foreground, background, name);            
+            //printf("  %-s\n", name);
             break;
     }
 }
@@ -263,11 +325,9 @@ void display_dir(int flag_param, char *path){
     if((dir = opendir(path)) < 0){
         err("open", __LINE__);
     }
-//printf("5-----\n");
 
     /*获取最长文件名和文件个数*/
     while((ptr = readdir(dir))){
-//printf("\n7-----\n");
         if(ptr == NULL){
             err("readdir", __LINE__);
             break;
@@ -291,7 +351,6 @@ void display_dir(int flag_param, char *path){
     }*/
 
     closedir(dir);
-//printf("6-----\n");
     if(count > 10000){
         err("too many files under this dir", __LINE__);
     }
@@ -325,7 +384,6 @@ void display_dir(int flag_param, char *path){
             }
         }
     }
-//printf("\nsum: %d\n",sum);
     for(i = 0; i < count; i++){
         display(flag_param, filename[i]);
     }
@@ -337,9 +395,8 @@ void display_dir(int flag_param, char *path){
             printf("\n");
         }
     }
-    //count_dir = 0;
     closedir(dir);
-    if(flag_param & PARAM_L == 0){
+    if((flag_param & PARAM_L) == 0){
         printf("\n");
     }
     flag = 0;
@@ -353,7 +410,12 @@ int main (int argc, char **argv)
     char param[32];
     int flag_param = PARAM_NONE;
     struct stat buf;
-
+    
+    /*struct winsize size;
+    ioctl(STDIN_FILENO,TIOCGWINSZ,&size);//获取终端屏幕宽度
+    MAXROWLEN = size.ws_col;
+    */
+    
     /*解析命令行参数*/
     for(i = 1; i < argc; i++){
         if(argv[i][0] == '-'){
