@@ -16,7 +16,6 @@ int main(int argc, char *argv[], char **envp) {
 
     while (true) {
         std::string st = readline(get_tip().c_str());   //获得用户输入的内容
-
         //若用户输入的不是全空格，则将这条命令保存在历史记录中。
         //否则就不处理这条命令，直接获得下一条命令。
         if (string_trim(st) == "")
