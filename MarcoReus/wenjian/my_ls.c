@@ -34,7 +34,9 @@ int g_maxlen;
 
 #define NORMAL 0
 #define GREEN  1 
-#define BLUE  2
+#define BLUE   2
+#define S_BLUE 3
+#define YELLOW 4
 
 void display_dir(int flag_param,char *path);
 
@@ -44,6 +46,8 @@ void my_err(const char *err_string,int line) {
     perror(err_string);
     if(errno != 13) {
         exit(0);
+    } else {
+        printf("无权限\n");
     } 
 }
 
@@ -55,7 +59,7 @@ void printfColor(char *name,int color) {
         printf("\033[;36m %-s\033[0m" "",name);
     } else if(color == NORMAL){
         printf(" %-s",name);
-    }
+    }       
 }
 
 /*
@@ -244,7 +248,7 @@ void display(int flag,char *pathname) {
     char name[PATH_MAX + 1];
     int color = NORMAL;
     
-    //获取文件路径
+    //获取文件名称
     for(i = 0,j = 0;i < strlen(pathname);i++) {
         if(pathname[i] == '/') {
             j = 0;
@@ -265,8 +269,7 @@ void display(int flag,char *pathname) {
     if((buf.st_mode & S_IXUSR) && color != BLUE) {
 	    color = GREEN;
     }      
-    
-    /*把与打印无关的参数去掉*/
+   
     if(flag & PARAM_T) {
         flag -= PARAM_T;
     }
@@ -332,14 +335,14 @@ void display_dir(int flag_param,char *path) {
     struct stat buf;
     //char filename[2000][PATH_MAX + 1];
     char **filename;
-    filename = (char **)malloc(sizeof(char *) * 200000);
+    filename = (char **)malloc(sizeof(char *) * 20000);
     int t;
-    for(t = 0;t < 200000;t++) {
+    for(t = 0;t < 20000;t++) {
         filename[t] = (char *)malloc(PATH_MAX+1);
     }
     
     long *filetime;
-    filetime = (long *)malloc(sizeof(long) * 200000);
+    filetime = (long *)malloc(sizeof(long) * 20000);
     char temp[PATH_MAX];
     //long filetime[2000];
     long timeTemp;
@@ -358,7 +361,7 @@ void display_dir(int flag_param,char *path) {
 	
     closedir(dir);
 
-    if(count > 200000) {
+    if(count > 20000) {
         my_err("too many files under this directory",__LINE__);
     }
     
@@ -409,7 +412,7 @@ void display_dir(int flag_param,char *path) {
 			}
 		}
     }
-    
+
     if(flag_param & PARAM_R) {                  //如果含r倒序输出
          if(flag_param & PARAM_R_) {             
             for(i = count - 1;i >= 0;i--) {         
@@ -428,11 +431,11 @@ void display_dir(int flag_param,char *path) {
                         continue;
                     }
                     printf("\n\n%s:",filename[i]);
-                    //如果目录最后忘记了/要加上/
-                    if(filename[i][len-1] != '/') {
-                        filename[i][len] == '/';
-                        filename[i][len+1] == 0;
-                    }
+                    
+                    len = strlen(filename[i]);
+                    strcat(filename[i],"/"); //一定要加上                   
+                    display_dir(flag_param,filename[i]);
+                } else {
                     display(flag_param,filename[i]);     
                 }
             }
@@ -447,10 +450,9 @@ void display_dir(int flag_param,char *path) {
                         continue;
                     }
                     printf("\n\n%s:\n",filename[i]);
-                    if(filename[i][len-1] != '/') {
-                        filename[i][len] == '/';
-                        filename[i][len+1] == 0;
-                    }
+
+                    len = strlen(filename[i]);
+                    strcat(filename[i],"/");
                     display_dir(flag_param,filename[i]);     
                 } else {
                     display(flag_param,filename[i]);
@@ -474,14 +476,14 @@ void display_dir(int flag_param,char *path) {
         printf("\n");
     }
     
-    for(i = 0;i < 200000;i++) {
+   
+    for(i = 0;i < 20000;i++) {
         free(filename[i]);
     }
     
     free(filename);
     free(filetime);
 }
-
 
 int main(int argc, char *argv[]) {
 	int i;
@@ -581,6 +583,7 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
 
 
 
