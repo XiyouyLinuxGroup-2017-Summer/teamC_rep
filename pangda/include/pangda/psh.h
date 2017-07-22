@@ -3,17 +3,19 @@
 #define _HEADER_PANGDA_SHELL__
 
 #include<unistd.h>
+#include<cstdio>
 #include<string>
 #include<vector>
-#include<iostream>
+#include<functional>
+#include<map>
+
 typedef std::vector<std::string> argument_t;
-//typedef std::vector<std::
 
 struct command_t {
     int is_right_cmd = 0;     //0 represent correct, any other number represent wrong.
     std::string execfile;
     argument_t arguments;
-    bool is_redirect_stdin = -false;
+    bool is_redirect_stdin = false;
     std::string filename_in;
     bool is_redirect_stdout = false;
     std::string filename_out;

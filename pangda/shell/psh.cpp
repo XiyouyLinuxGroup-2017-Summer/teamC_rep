@@ -8,27 +8,24 @@ wc -c < a
 3.pipe
 ls -l / | wc -c
 4.&
-5.alias
-6.chdir
+5.chdir
 *****************************************************/
-#include<iostream>
-#include<cstdlib>
 #include<pangda/psh.h>
 #include<readline/readline.h>
 #include<readline/history.h>
-#include<string>
-#include<map>
-#include<functional>
-extern std::map<std::string, std::function<int(command_t)> > shell_commands;
+#include<cstdlib>
 
-std::map<std::string, std::string> shell_alias;
+extern std::map<std::string, std::function<int(command_t)> > shell_commands;
 char **envir;
+
 int main(int argc, char *argv[], char **envp) {
     envir = envp;
     shell_commands["exit"] = shellfunc_exit;
     shell_commands["logout"] = shellfunc_logout;
     shell_commands["cd"] = shellfunc_cd;
+
     while (true) {
+        //fflush(stdout);
         std::string st = readline(get_tip().c_str());
         if (string_trim(st) == "")
             continue;
