@@ -3,11 +3,10 @@
 #include<dirent.h>
 #include<fcntl.h>
 #include<cstring>
-#include<map>
-#include<functional>
 
 std::map<std::string, std::function<int(command_t)> > shell_commands;
 extern char **envir;
+
 static std::vector<std::string> split_string(std::string str, char sep) {
     std::vector<std::string> ret;
     unsigned int start = 0;
@@ -103,7 +102,15 @@ int exec_command(command_t &cmd) {
             return 0;
         } else {
             int ret;
+            /**
             wait(&ret);
+            不可使用wait！使用wait会导致上一个未获得状态的僵死进程占用此位置,导致子进程还未运行完毕，
+            父进程已经开始输出下一个命令行！
+            **/
+            if (waitpid(child, &ret, 0) == -1) {
+                perror("psh");
+                return -1;
+            }   
             return 0;
         }
     }
@@ -134,6 +141,7 @@ int exec_command(command_t &cmd) {
         
         if (ret == -1) {
             perror("psh");
+            exit(-1);
         }
         exit(0);    //end child process
     }
