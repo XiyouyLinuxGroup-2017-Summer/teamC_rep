@@ -60,6 +60,9 @@ std::string string_trim(std::string s) {
 }
 
 int shellfunc_cd(command_t cmdt) {
+    if (cmdt.arguments.size() == 1)  {
+        cmdt.arguments.push_back(".");
+    }
     if (chdir(cmdt.arguments[1].c_str()) != 0) {
         perror("psh");
         return -1;
