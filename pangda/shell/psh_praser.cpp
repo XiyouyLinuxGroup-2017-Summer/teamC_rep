@@ -31,7 +31,7 @@ static void stylize_command(std::string &cmd) {
     }
 }
 
-//构建管道命令。管道的实现方式：将管道左右分别变为两个不同的命令，分别执行两个命令
+//构建管道命令。管道的实现方式：将管道左右分别变为两个带重定向的命令，分别执行两个命令
 static void pipe_buildcmd(command_t &origin_cmd) {
     auto in = origin_cmd.arguments;
     origin_cmd.pipe_prompt[0] = origin_cmd.pipe_prompt[1] = "";

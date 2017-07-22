@@ -87,6 +87,5 @@ int shellfunc_exit(command_t cmdt) {
 
 //内建命令：logout
 int shellfunc_logout(command_t cmdt) {
-    shellfunc_exit(cmdt);   //logout功能与exit相同
-    return 0;
+    return shellfunc_exit(cmdt);   //logout功能与exit相同，直接跳转使若exit有更多功能不必再次复制
 }

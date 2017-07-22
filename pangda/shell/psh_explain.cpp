@@ -138,7 +138,7 @@ int exec_command(command_t &cmd) {
                 psh_error(202); //错误201：打开文件出错
                 exit(0);
             }
-            //不使用dup的原因同理
+            //不使用dup的原因同stdin
             dup2(fd, STDOUT_FILENO);
         }
 
