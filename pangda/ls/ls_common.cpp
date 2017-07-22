@@ -10,7 +10,7 @@ using std::queue;
 //打开一个目录并返回DIR流
 static DIR *open_folder(const param_t param) {
     DIR *ret;
-    if ((ret = opendir(param.path.c_str())) == NULL) {
+    if ((ret = opendir(param.path.c_str())) == NULL) {  //尝试打开
         return NULL;    //出错则返回NULL
     }
     return ret;

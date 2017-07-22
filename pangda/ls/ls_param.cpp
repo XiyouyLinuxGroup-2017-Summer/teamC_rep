@@ -4,7 +4,7 @@
 static const char *PARAMSTR_a = "all";
 static const char *PARAMSTR_A = "almost-all";
 
-//分析并返回是否具有参数
+//分析并返回是否具有参数，返回值是参数做|运算后的数值
 static int analyse_param(const char *args) {
     if (args[0] != '-')     //若参数不以-开头，说明他不是一个参数
         return -1;
