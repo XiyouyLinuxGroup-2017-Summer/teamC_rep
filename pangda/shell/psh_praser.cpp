@@ -1,8 +1,5 @@
 #include<pangda/psh.h>
 #include<sstream>
-#include<map>
-#include<functional>
-
 
 static argument_t split_command(std::string command) {
     argument_t ret;
