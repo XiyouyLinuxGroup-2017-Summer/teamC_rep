@@ -1,14 +1,13 @@
-sous = $(wildcard *.cpp)
-objs = $(patsubst %.cpp,%.o,$(sous))
-args = -std=c++14 -I ../include -Wall
+SOURCES = $(wildcard *.cpp)
+OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
+CXXFLAG = -std=c++14 -I ../include -Wall -O2
 
-myls: $(objs)
-	@echo $(objs)
-	g++ $(args) -o myls $(objs)
+pls: $(OBJECTS)
+	g++ $(CXXFLAG) -o pls $(OBJECTS)
 
-$(objs) : $(sous)
-	g++ $(args) -c *.cpp 
+$(OBJECTS): $(SOURCES)
+	g++ $(CXXFLAG) -c *.cpp
 
 .PHONY: clean
 clean :
-	-rm $(objs)
+	-rm $(OBJECTS)

@@ -62,7 +62,6 @@ static list_type test_tier(const int tier, const vint_t widths) {
 //计算在当前文件下，列宽应该为多少
 static list_type calc_cols(const vft_t files) {
     int limit = get_winsize().ws_col;   //获取终端的最大列宽
-
     vint_t widths;
     for (auto i : files) {
         widths.push_back(i.fst_name.size());    //构建文件长度表
