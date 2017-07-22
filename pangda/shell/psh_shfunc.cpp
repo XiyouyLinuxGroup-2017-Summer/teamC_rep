@@ -1,6 +1,6 @@
 #include<pangda/psh.h>
-#include<pwd.h>
 #include<sys/utsname.h>
+#include<pwd.h>
 #include<cstring>
 
 std::string get_username(uid_t uid) {
@@ -24,19 +24,27 @@ std::string get_tip() {
     if (where == "")
         where = "/";
     ret += where;
-    ret += "]$ ";
+    ret += "]";
+    ret += ((geteuid() == 0) ? "# " : "$ ");
     free(curdir);
     return ret;
 }
 
 int psh_error(int error) {
     switch (error) {
-    //fixme： add error
+    case 1:
+        break;
     case 100:
         printf("psh: command not found.\n");
         break;
     case 201:
         printf("psh: file doesn\'t exist.\n");
+        break;
+    case 300:
+        printf("psh: environment error.\n");
+        break;
+    case 400:case 401:case 403:
+        printf("psh: error present.\n");
         break;
     }
     return -1;
