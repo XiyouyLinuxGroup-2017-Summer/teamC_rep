@@ -2,5 +2,52 @@
 
 ## 周安排
 
-Last Update: Jul 20, 2017
-<table style="undefined;table-layout: fixed; width: 517px"><colgroup><col style="width: 93.002404px"><col style="width: 222.002404px"><col style="width: 158.002404px"><col style="width: 44.002404px"></colgroup><tr><th></th><th colspan="2">计划</th><th>达成</th></tr><tr><td rowspan="3">周一</td><td>Linux C</td><td>6.1-6.6</td><td>7.17</td></tr><tr><td>APUE</td><td>第一章选看</td><td>7.17</td></tr><tr><td>vjudge</td><td>完成当日题目</td><td>7.17</td></tr><tr><td rowspan="3">周二</td><td>Linux C</td><td>6.7</td><td>7.18</td></tr><tr><td>APUE</td><td>第一章完成</td><td>7.19</td></tr><tr><td>vjudge</td><td>完成当日题目</td><td>7.18</td></tr><tr><td rowspan="3">周三</td><td>实验:ls</td><td>至少完成-a -l参数</td><td>7.18</td></tr><tr><td>SICP</td><td>继续进度</td><td>7.19</td></tr><tr><td>vjudge</td><td>完成当日题目</td><td>7.19</td></tr><tr><td rowspan="3">周四</td><td>实验:ls</td><td>至少完成-R 以及染色</td><td>7.18</td></tr><tr><td>C++ Primer</td><td>至少继续进行一章</td><td></td></tr><tr><td>vjudge</td><td>完成当日题目</td><td>7.20</td></tr><tr><td rowspan="3">周五</td><td>实验:ls</td><td>完成所有想要的特性</td><td>7.18</td></tr><tr><td>Introduction to Algorithms</td><td>红黑树:能看多少是多少</td><td></td></tr><tr><td>vjudge</td><td>完成当日题目</td><td>7.21</td></tr><tr><td rowspan="3">周六</td><td>vjudge</td><td>完成当日题目</td><td></td></tr><tr><td>UNP</td><td>选看一些入门内容</td><td></td></tr><tr><td colspan="2">总结</td><td>7.20</td></tr></table>
+Last Update: Jul 22, 2017
+
+### 周一 7.17
+
+|项目|进度|完成时间|
+|-|-|-|
+|*Linux C*|6.1-6.6|7.17|
+|*APUE*|第一章选看|7.17|
+|*vjudge*|完成当日题目|7.17|
+
+### 周二 7.18
+
+|项目|进度|完成时间|
+|-|-|-|
+|*Linux C*|6.7|7.18|
+|*APUE*|第一章完成|7.19|
+|*vjudge*|完成当日题目|7.18|
+
+
+### 周三 7.19
+
+|项目|进度|完成时间|
+|-|-|-|
+|*ls*|至少完成 -a -l参数|7.18|
+|*SICP*|继续进度|7.19|
+|*vjudge*|完成当日题目|7.19|
+
+### 周四 7.20
+
+|项目|进度|完成时间|
+|-|-|-|
+|*ls*|至少完成-R 以及染色|7.18|
+|*C++ Primer*|继续进度一章||
+|*vjudge*|完成当日题目|7.20|
+
+### 周五 7.21
+
+|项目|进度|完成时间|
+|-|-|-|
+|*ls*|完成要求的内容|7.18|
+|*Introduciton to Alogorithms*|红黑树概念||
+|*vjudge*|完成当日题目|7.21|
+
+### 周六 7.22
+
+|项目|进度|最终情况|
+|-|-|-|
+|*UNP*|选看一些入门内容|7.22|
+|*vjudge*|完成当日题目|7.22|
