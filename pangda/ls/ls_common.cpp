@@ -16,12 +16,16 @@ static DIR *open_folder(const param_t param) {
     return ret;
 }
 
-//返回一个文件的属性字，即目录返回d，链接返回l
+//返回一个文件的属性字，即目录返回d，链接返回l等等
 static char check_type(const mode_t mode) {
     if (S_ISLNK(mode))
         return 'l';
     if (S_ISDIR(mode))
         return 'd';
+    if (S_ISCHR(mode))
+        return 'c';
+    if (S_ISBLK(mode))
+        return 'b';
     return '-';
 }
 
