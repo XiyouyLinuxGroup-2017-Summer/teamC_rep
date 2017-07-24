@@ -6,7 +6,7 @@
 
 //shell_commands：构建内建命令与处理函数的映射
 std::map<std::string, std::function<int(command_t)> > shell_commands;
-extern char **envir;    //导入环境变量
+
 
 //分割字符串，主要用于分割PATH环境变量。让a:b:c变成["a","b","c"]的列表，方便查找
 static std::vector<std::string> split_string(std::string str, char sep) {
@@ -142,7 +142,7 @@ int exec_command(command_t &cmd) {
             dup2(fd, STDOUT_FILENO);
         }
 
-        int ret = execve(path.c_str(), arglist, envir);
+        int ret = execve(path.c_str(), arglist);
         
         if (ret == -1) {
             perror("psh");
