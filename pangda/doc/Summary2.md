@@ -132,7 +132,18 @@ int fexecve(int fd, char *const argv[], char *const envp[]);
  
 ### 区分`exec`族函数
 
-![exec族函数的区分](http://img.blog.csdn.net/20170724114004391?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvaGVwYW5nZGE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![exec族函数的区分](http://img.blog.csdn.net/20170724151807990?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvaGVwYW5nZGE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+ - `exec`后第一个字母 
+   - 凡是使用参数表的，均带有`l`，代表`list`。
+   - 凡是使用argv数组的，均带有`v`，代表`vector`。
+ - `exec`后第二个字母
+   - 凡是使用路径的，此位均留空。
+   - 凡是使用文件名的，此为均为`p`。
+ - `exec`后第三个字母
+   - 凡是使用`environ`变量的，此位留空。
+   - 凡是使用`envp[]`数组的，此位均为`e`。
+ - 使用文件描述符的仅有一个，就是`fexecve`。
 
 # 进程运行标识
 
