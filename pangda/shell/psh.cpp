@@ -4,11 +4,8 @@
 #include<cstdlib>
 
 extern std::map<std::string, std::function<int(command_t)> > shell_commands;
-char **envir;
 
 int main(int argc, char *argv[], char **envp) {
-    envir = envp;   //保存shell获得的环境变量，便于传递给子进程
-
     //构建内建命令与实现函数的映射
     shell_commands["exit"] = shellfunc_exit;
     shell_commands["logout"] = shellfunc_logout;
