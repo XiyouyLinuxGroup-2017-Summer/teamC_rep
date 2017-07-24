@@ -101,7 +101,7 @@ static int outone_normal(const vft_t filist) {
 }
 
 //输出是否具有指定的权限，若有输出right,反之输出-
-static int put_power(const mode_t mode, const int power, const char right) {
+static inline int put_power(const mode_t mode, const int power, const char right) {
     if (mode & power)
         return putchar(right);
     return putchar('-');
