@@ -19,12 +19,20 @@ static void stylize_command(std::string &cmd) {
         //而i没有发生变化，因此需要计算偏移值。
         int offset = 0; 
         //若检测到了语法元素:><|&
-        if (cmd[i] == '<' || cmd[i] == '>' || cmd[i] == '|' || cmd[i] == '&') {
+        if (cmd[i] == '<' || cmd[i] == '|' || cmd[i] == '&') {
             if (i - 1 >= 0 && cmd[i - 1] != ' ') {  //若语法元素左方没有空格
                 cmd.insert(i, " ");
                 offset--;
             }
             if (i + 1 < cmd.length() && cmd[i + 1 + offset] != ' ') {   //若语法元素右方无空格
+                cmd.insert(i + 1, " ");
+            }
+        } else if (cmd[i] == '>') {
+            if (i - 1 >= 0 && cmd[i - 1] != ' ' && cmd[i - 1] != '>') {  //若语法元素左方没有空格
+                cmd.insert(i, " ");
+                offset--;
+            }
+            if (i + 1 < cmd.length() && cmd[i + 1 + offset] != ' ' && cmd[i + 1 + offset] != '>') {   //若语法元素右方无空格
                 cmd.insert(i + 1, " ");
             }
         }
@@ -64,7 +72,7 @@ static void setarg_command(command_t &cmdt) {
 
     //逐个检查参数列表中的内容
     for (int i = 0; i < sz; i++) {
-        if (in[i] == ">" || in[i] == "<") { //若为<>，需要多跳过一个内容
+        if (in[i] == ">" || in[i] == "<" || in[i] == ">>") { //若为<>，需要多跳过一个内容
             i++;
         } else if (in[i] == "&") {  //若为&，直接跳过即可，循环结束会自动i++
             continue;
@@ -80,8 +88,10 @@ static void setmark_command(command_t &cmdt) {
     //从除过命令名之后的其他元素开始逐个检查
     for (auto it = cmdt.arguments.begin() + 1; it != cmdt.arguments.end(); it++) {
         //若出现>元素
-        if (*it == ">") {
+        if (*it == ">" || *it == ">>") {
             cmdt.is_redirect_stdout = true; //标记>语法元素
+            if (*it == ">>")
+                cmdt.stdout_mode = true;
             if (it + 1 == cmdt.arguments.end()) {
                 cmdt.is_right_cmd = 400; //错误400：>语法元素后没有跟任何内容，错误语法
                 break;
