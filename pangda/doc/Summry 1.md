@@ -22,6 +22,7 @@ int open(const char *path, int oflag, mode_t mode);
 ### 参数
 
 其中参数`oflag`可选项有：
+
 |选项（以下五选一）|说明|
 |-|-|
 |`O_RDONLY`|只读打开|
