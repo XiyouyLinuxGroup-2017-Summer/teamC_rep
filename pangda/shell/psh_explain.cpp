@@ -6,7 +6,7 @@
 
 //shell_commands：构建内建命令与处理函数的映射
 std::map<std::string, std::function<int(command_t)> > shell_commands;
-extern char **envir;    //导入环境变量
+
 
 //分割字符串，主要用于分割PATH环境变量。让a:b:c变成["a","b","c"]的列表，方便查找
 static std::vector<std::string> split_string(std::string str, char sep) {
@@ -29,7 +29,6 @@ static std::string find_exec(command_t &cmd) {
         cmd.is_right_cmd = 1; //错误1：命令是一个内建命令，无需处理
         return "";
     }
-    
     //命令不属于内建命令，那么依次在环境变量目录中查找命令的可执行文件
     std::vector<std::string> envpath = split_string(getenv("PATH"), ':');   //构建目录列表
     envpath.push_back("./");    //将当前目录也放在查找列表中
@@ -133,7 +132,9 @@ int exec_command(command_t &cmd) {
 
         if (cmd.is_redirect_stdout) {   //若有>语法元素
             mode_t mode = S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH;    //配置文件属性
-            int fd = open(cmd.filename_out.c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
+            int flag = O_WRONLY | O_CREAT;
+            flag |= (cmd.stdout_mode) ? O_APPEND : O_TRUNC;
+            int fd = open(cmd.filename_out.c_str(), flag, mode);
             if (fd < 0) {
                 psh_error(202); //错误201：打开文件出错
                 exit(0);
@@ -142,7 +143,7 @@ int exec_command(command_t &cmd) {
             dup2(fd, STDOUT_FILENO);
         }
 
-        int ret = execve(path.c_str(), arglist, envir);
+        int ret = execv(path.c_str(), arglist);
         
         if (ret == -1) {
             perror("psh");

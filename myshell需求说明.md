@@ -5,4 +5,4 @@
 <br>4. 支持shell内置命令(cd等)
 <br>5. 支持tab补全目录文件以及历史记录上下翻(提示:使用readline库)
 <br>6. ctrl+c不能中断程序(提示:使用信号)
-<br>7. 设置环境变量，使程序可以像bash，zsh这种shell一样运行
+<br>7. 设置环境变量，使程序可以像bash，zsh这种shell一样运行(设置PATH，使不需要使用类似于./myshell的形式才可以使用你的shell)
