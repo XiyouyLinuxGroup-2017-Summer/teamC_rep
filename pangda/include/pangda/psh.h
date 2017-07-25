@@ -25,7 +25,7 @@ struct command_t {
     std::string pipe_prompt[2];         //保存管道命令
 };
 
-command_t prase_command(std::string command);
+command_t parse_command(std::string command);
 std::string string_trim(std::string s);
 std::string get_tip();
 int exec_command(command_t &cmd);
