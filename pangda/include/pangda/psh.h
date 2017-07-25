@@ -15,9 +15,10 @@ struct command_t {
     int is_right_cmd = 0;               //命令是否是正确的，若为0则说明是正确的，其他数字代表错误码
     std::string execfile;               //执行的文件名
     argument_t arguments;               //参数列表
-    bool is_redirect_stdin = false;     //是否重定向了标准输入，即是否存在>语法元素
+    bool is_redirect_stdin = false;     //是否重定向了标准输入，即是否存在<语法元素
     std::string filename_in;            //新的标准输入名
-    bool is_redirect_stdout = false;    //是否重定向了标准输出，即是否存在<语法元素
+    bool is_redirect_stdout = false;    //是否重定向了标准输出，即是否存在>语法元素
+    bool stdout_mode = false;           //false表示截断输出，true表示追加输出
     std::string filename_out;           //新的标准输出文件名
     bool is_background = false;         //是否指定在后台运行，即是否存在&语法元素
     bool is_pipe = false;               //是否是一个管道，即是否存在|语法元素

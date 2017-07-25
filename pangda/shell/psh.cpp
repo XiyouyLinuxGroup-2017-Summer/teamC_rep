@@ -2,18 +2,20 @@
 #include<readline/readline.h>
 #include<readline/history.h>
 #include<cstdlib>
-
+#include<signal.h>
 extern std::map<std::string, std::function<int(command_t)> > shell_commands;
-char **envir;
 
 int main(int argc, char *argv[], char **envp) {
-    envir = envp;   //保存shell获得的环境变量，便于传递给子进程
-
     //构建内建命令与实现函数的映射
     shell_commands["exit"] = shellfunc_exit;
     shell_commands["logout"] = shellfunc_logout;
     shell_commands["cd"] = shellfunc_cd;
 
+    //阻断SIGINT SIGQUIT SIGSTOP SIGTSTP
+    signal(SIGINT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGSTOP, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
     while (true) {
         std::string st = readline(get_tip().c_str());   //获得用户输入的内容
         //若用户输入的不是全空格，则将这条命令保存在历史记录中。
