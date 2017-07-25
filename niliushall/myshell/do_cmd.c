@@ -97,6 +97,49 @@ void do_cmd(int argcount, char arglist[][256]){
 
     switch(how){
         case 0:
+        if(!pid){
+            if(!find_cmd(arg[0])){
+                printf("%s: command not found.\n", arg[0]);
+                exit(0);
+            }
+            execvp(arg[0], arg);
+            exit(0);
+        }
+        break;
 
+        case 1:
+        if(!pid){
+            if(!find_cmd(arg[0])){
+                printf("%s: command not found\n", arg[0]);
+                exit(0);
+            }
+
+            if((fd = open(file, O_RDWR|O_CREAT|O_TRUNC, 0644)) < 0){
+                printf("%s: file creation failed\n", file);
+                exit(0);
+            }
+            dup2(fd, 1);
+            execvp(arg[0], arg);
+            exit(0);
+        }
+        break;
+
+        case 2:
+        if(!pid){
+            if(!find_cmd(arg[0])){
+                printf("%s: command not found\n", arg[0]);
+                exit(0);
+            }
+            if((fd = open(file, O_RDONLY)) < 0){
+                printf("%s: can not open\n", file);
+                exit(0);
+            }
+            dup2(fd, 0);
+            execvp(arg[0], arg);
+            exit(0);
+        }
+        break;
+        
+    
     }
 }
