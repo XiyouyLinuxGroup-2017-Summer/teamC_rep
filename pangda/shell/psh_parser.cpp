@@ -125,7 +125,7 @@ static void setmark_command(command_t &cmdt) {
     setarg_command(cmdt);   //删除句中出现的多余语法元素
 }
 
-command_t prase_command(std::string command) {
+command_t parse_command(std::string command) {
     command_t ret;
     stylize_command(command);   //让句中的语法元素与其他元素分割开来
     ret.arguments = split_command(command); //构建参数列表
