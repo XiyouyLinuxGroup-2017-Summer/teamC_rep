@@ -1,11 +1,27 @@
 /*************************************************************************
-    > File Name: do_cmd.c
-    > Author: niliushall
+	> File Name: do_cmd.c
+	> Author: niliushall
     > Email: sdwllinux@gmail.com
-    > Created Time: 2017年07月25日 星期二 15时51分41秒
+	> Created Time: 2017年07月25日 星期二 15时51分41秒
  ************************************************************************/
 
 #include "myshell.h"
+
+/*若有&， 则后台执行*/
+void back_run(int background){
+    int pid;
+
+    if(background == 1){
+        if((pid = fork()) < 0){
+            printf("fork error\n");
+            exit(0);
+        }
+        else if(pid > 0){
+            printf("Process id is %d\n", pid);
+            return;
+        }
+    }
+}
 
 void do_cmd(int argcount, char arglist[][256]){
     int flag = 0;
@@ -22,19 +38,6 @@ void do_cmd(int argcount, char arglist[][256]){
         arg[i] = (char *)arglist[i];
     }
     arg[argcount] = NULL;
-
-    if(!strcmp(arg[0], "cd")){
-        if(chdir(arg[1]) < 0){
-            printf("%s: no such file\n", arg[1]);
-        }
-        return;
-    }
-
-    if(!strcmp(arg[0], "pwd")){
-        char buf[256];
-        printf("%s\n", getcwd(buf, 256));
-        return;
-    }
 
     /*查看命令行是否有后台运算符*/
     for(i = 0; i < argcount; i++){
@@ -85,7 +88,7 @@ void do_cmd(int argcount, char arglist[][256]){
                 arg[i] = NULL;
             }
         }
-    }
+    } 
     else if(how == IN_REDIRECT){
         for(i = 0; arg[i] != NULL; i++){
             if(!strncmp(arg[i], "<", 1)){
@@ -94,7 +97,7 @@ void do_cmd(int argcount, char arglist[][256]){
             }
         }
     }
-       else if(how == HAVE_PIPE){
+    else if(how == HAVE_PIPE){
         for(i = 0; arg[i] != NULL; i++){
             if(!strncmp(arg[i], "|", 1)){
                 arg[i] = NULL;
@@ -119,9 +122,31 @@ void do_cmd(int argcount, char arglist[][256]){
                 printf("%s: command not found.\n", arg[0]);
                 exit(0);
             }
-            execvp(arg[0], arg);
+            
+            if(background == 1){
+                int pid2;
+                if((pid2 = fork()) < 0){
+                    printf("fork error\n");
+                    exit(0);
+                }
+                else if(pid2 > 0){
+                    printf("Process exited with %d\n", pid2);
+                    exit(0);
+                }    
+
+                sleep(3);
+                    
+                execvp(arg[0], arg);
+            }
             exit(0);
         }
+        if(waitpid(pid, NULL, 0) < 0){
+            perror("waitpid error");
+            exit(1);
+        }
+        
+        exit(0);
+        
         break;
 
         case 1:
@@ -209,13 +234,7 @@ void do_cmd(int argcount, char arglist[][256]){
             break;
     }
 
-    /*若有&， 则后台执行 -- error*/
-    if(background == 1){
-        printf("[process is %d]\n", pid);
-
-        return;
-    }
-
+   
     /*等待子进程退出*/
     if(waitpid(pid, &status, 0) < 0 ){
         printf("wait for child process error\n");
