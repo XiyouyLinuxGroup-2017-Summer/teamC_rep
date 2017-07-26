@@ -16,6 +16,8 @@
 #include <dirent.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <signal.h>
+#include <sys/param.h>
 
 #define NORMAL        0//一般命令
 #define OUT_REDIRECT  1//输出重定向

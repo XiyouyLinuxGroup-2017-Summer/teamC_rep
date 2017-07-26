@@ -11,8 +11,8 @@
 void get_input(char *buf){
     int len = 0, k = 0;
     char ch, tmp[100];
-    char **matches = (char **)NULL;
-    rl_compentry_func_t * command_generator;
+    //char **matches = (char **)NULL;
+    //rl_compentry_func_t * command_generator;
 
     while((ch = getchar()) != '\n' && len < 256){
         buf[len++] = ch;
@@ -39,5 +39,4 @@ void get_input(char *buf){
         printf("Command is too long.\n");
         exit(1);
     }
-
 }
