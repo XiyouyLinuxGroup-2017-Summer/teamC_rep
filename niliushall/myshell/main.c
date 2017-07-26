@@ -24,7 +24,6 @@ int main (int argc, char **argv)
         perror("malloc failed");
         exit(1);
     }
-
     while(1){
         memset(buf, 0, 256);//将buf清零
         print_prompt();
@@ -34,7 +33,13 @@ int main (int argc, char **argv)
             break;
 
         argcount = explain_input(buf, arglist);
-        //do_cmd(argcount, arglist);
+
+        do_cmd(argcount, arglist);
+    }
+
+    if(buf != NULL){
+        free(buf);
+        buf = NULL;
     }
 
     return 0;
