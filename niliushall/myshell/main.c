@@ -24,6 +24,7 @@ int main (int argc, char **argv)
     signal(SIGTTIN, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGHUP, SIG_IGN);
+    signal(SIGINT, SIG_IGN); //ctrl+c
 
     buf = (char *)malloc(256);
     if(buf == NULL){
