@@ -1,21 +1,37 @@
-#include<iostream>
+#include<pthread.h>
+#include<stdio.h>
+#include<errno.h>
+#include<string.h>
+pthread_key_t key;
+int init_done = 0;
+pthread_barrier_t bar;
 
-using namespace std;
+void destructor(void *arg) {}
 
-int gcd(const int a, const int b) {
-	return b ? gcd(b, a % b) : a;
+void *threadfunc1(void *arg) {
+	if (!init_done) {
+		init_done = 1;
+		int err = pthread_key_create(&key, destructor);
+		if (err != 0)
+			printf("err!%s\n", strerror(err));
+	}
+	printf("[THREAD1]%u\n", (unsigned int)key);
+	pthread_barrier_wait(&bar);
+}
+
+void *threadfunc2(void *arg) {
+	printf("[THREAD2]%u\n", (unsigned int)key);
+	pthread_barrier_wait(&bar);
 }
 
 int main() {
-	int cas;
-	cin >> cas;
-	while (cas--) {
-		int a, b;
-		cin >> a >> b;
-		int ret = b * 2;
-		while (!(a % b == 0 && ret % b == 0 && gcd(a, ret) == b))
-			ret += b;
-		cout << ret << endl;
-	}
-	return 0;
+	pthread_t t1, t2;
+	pthread_barrier_init(&bar, NULL, 3);
+	pthread_create(&t2, NULL, threadfunc2, NULL);
+	pthread_create(&t1, NULL, threadfunc1, NULL);
+	
+	printf("[MAIN]%u\n", (unsigned int)key);
+	pthread_barrier_wait(&bar);
+
+	pthread_barrier_destroy(&bar);
 }
