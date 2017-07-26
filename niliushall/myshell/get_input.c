@@ -17,6 +17,7 @@ void get_input(char *buf){
     while((ch = getchar()) != '\n' && len < 256){
         buf[len++] = ch;
     }
+    buf[len] = 0;
         /*if(ch == ' '){
             k = 0;
         }
