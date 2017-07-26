@@ -6,13 +6,14 @@
  ************************************************************************/
 
 #include "myshell.h"
+
 void do_cmd(int argcount, char arglist[][256]){
     int flag = 0;
     int how = 0;
     int background = 0;
     int status, i, fd;
     char * arg[argcount + 1];
-    char * argnext[argcount + 1];
+    char * argnext[argcount + 1];// '|'后面的的命令
     char *file;
     pid_t pid;
 
@@ -72,19 +73,22 @@ void do_cmd(int argcount, char arglist[][256]){
             }
         }
     } 
-    else if(!strncmp(arg[i], ">", 1)){
+    else if(how == IN_REDIRECT){
         for(i = 0; arg[i] != NULL; i++){
-            file = arg[i + 1];
-            arg[i] = NULL;
+            if(!strncmp(arg[i], "<", 1)){
+                file = arg[i + 1];
+                arg[i] = NULL;
+            }
         }
     }
     else if(how == HAVE_PIPE){
-        if(!strncmp(arg[i], "|", 1)){
-            for(i = 0; arg[i] != NULL; i++){
+        for(i = 0; arg[i] != NULL; i++){
+            if(!strncmp(arg[i], "|", 1)){
                 arg[i] = NULL;
                 int j = i+1;
-                for( ; arg[i] != NULL; i++ )
+                for( ; arg[j] != NULL; j++ )
                     argnext[j - i - 1] = arg[j];
+                argnext[j - i - 1] = NULL;
                 break;
             }
         }
@@ -97,7 +101,7 @@ void do_cmd(int argcount, char arglist[][256]){
 
     switch(how){
         case 0:
-        if(!pid){
+        if(pid == 0){
             if(!find_cmd(arg[0])){
                 printf("%s: command not found.\n", arg[0]);
                 exit(0);
@@ -108,7 +112,7 @@ void do_cmd(int argcount, char arglist[][256]){
         break;
 
         case 1:
-        if(!pid){
+        if(pid == 0){
             if(!find_cmd(arg[0])){
                 printf("%s: command not found\n", arg[0]);
                 exit(0);
@@ -125,7 +129,7 @@ void do_cmd(int argcount, char arglist[][256]){
         break;
 
         case 2:
-        if(!pid){
+        if(pid == 0){
             if(!find_cmd(arg[0])){
                 printf("%s: command not found\n", arg[0]);
                 exit(0);
@@ -140,6 +144,67 @@ void do_cmd(int argcount, char arglist[][256]){
         }
         break;
         
-    
+        case 3:
+        if(pid == 0){
+            int pid2, status2, fd2;
+
+            /*创建子进程查找执行"|" 前面的命令*/
+            if((pid2 = fork()) < 0){
+                printf("fork2 failed\n");
+                exit(0);
+            }
+            else if(pid2 == 0){
+                if(!find_cmd(arg[0])){
+                    printf("%s: command not found\n", arg[0]);
+                    exit(0);
+                }
+                if((fd2 = open("/tmp/iknow", O_CREAT|O_RDONLY|O_TRUNC, 0644)) < 0){
+                    printf("file creation failed\n");
+                    exit(0);
+                }
+                dup2(fd2, 1);
+                execvp(arg[0], arg);
+                exit(0);
+            }
+            
+            /*退出子进程*/
+            if(waitpid(pid2, &status, 0) < 0){
+                printf("wait for child process error\n");
+                exit(0);
+            }
+
+            if(!find_cmd(argnext[0])){
+                printf("%s: command not found\n", argnext[0]);
+                exit(0);
+            }
+
+            if((fd2 = open("/tmp/iknow", O_RDONLY)) < 0){
+                printf("open temp file error\n");
+                exit(0);
+            }
+
+            dup2(fd2, 0);
+            execvp(argnext[0], argnext);
+
+            if(remove("/tmp/iknow") < 0)
+                printf("remove temp file error\n");
+            exit(0);
+        }
+        break;
+        
+        default:
+            break;
+    }
+
+    /*若有&， 则后台执行*/
+    if(background == 1){
+        printf("[process is %d]\n", pid);
+
+        return;
+    }
+
+    /*等待子进程退出*/
+    if(waitpid(pid, &status, 0) < 0 ){
+        printf("wait for child process error\n");
     }
 }
