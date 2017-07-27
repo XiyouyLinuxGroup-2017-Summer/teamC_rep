@@ -7,7 +7,7 @@
 
 #include "myshell.h"
 
-void do_cmd(int argcount, char arglist[][256]){
+void do_cmd(int argcount, char arglist[][256], int count_t, char history[][256]){
     int flag = 0;
     int how = 0;
     int background = 0;
@@ -33,6 +33,12 @@ void do_cmd(int argcount, char arglist[][256]){
     if(!strcmp(arg[0], "pwd")){
         char buf[256];
         printf("%s\n", getcwd(buf, 256));
+        return;
+    }
+
+    if(!strcmp(arg[0], "history")){
+        for(i = 0; i < count_t; i++)
+            printf("%4d: %s\n", i, history[i]);
         return;
     }
 
@@ -70,6 +76,12 @@ void do_cmd(int argcount, char arglist[][256]){
             if(arg[i+1] == NULL || !i)
                 flag++;
         }
+        else if(!strncmp(arg[i], ">>", 2)){
+            flag++;
+            how = IN_APPEND;
+            if(arg[i+1] == NULL)
+                flag++;
+        }
     }
 
     /*存在多个重定向和 | 符号，或格式不对*/
@@ -94,7 +106,7 @@ void do_cmd(int argcount, char arglist[][256]){
             }
         }
     }
-       else if(how == HAVE_PIPE){
+    else if(how == HAVE_PIPE){
         for(i = 0; arg[i] != NULL; i++){
             if(!strncmp(arg[i], "|", 1)){
                 arg[i] = NULL;
@@ -103,6 +115,14 @@ void do_cmd(int argcount, char arglist[][256]){
                     argnext[j - i - 1] = arg[j];
                 argnext[j - i - 1] = NULL;
                 break;
+            }
+        }
+    }
+    else if(how == IN_APPEND){
+        for(i = 0; arg[i] != NULL; i++){
+            if(!strcmp(arg[i],  ">>")){
+                file = arg[i + 1];
+                arg[i] = NULL;
             }
         }
     }
@@ -201,6 +221,22 @@ void do_cmd(int argcount, char arglist[][256]){
 
             if(remove("/tmp/iknow") < 0)
                 printf("remove temp file error\n");
+            exit(0);
+        }
+        break;
+
+        case 4:
+        if(pid == 0){
+            if(!find_cmd(arg[0])){
+                printf("%s: command not found\n", arg[0]);
+                exit(0);
+            }
+            if((fd = open(file, O_CREAT|O_RDWR|O_APPEND, 0644)) < 0){
+                printf("%s: file can not open\n", file);
+                exit(0);
+            }
+            dup2(fd, 1);
+            execvp(arg[0], arg);
             exit(0);
         }
         break;

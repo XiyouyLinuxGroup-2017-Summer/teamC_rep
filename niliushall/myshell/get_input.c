@@ -8,16 +8,24 @@
 #include "myshell.h"
 
 /*获取用户输入*/
-void get_input(char *buf){
+void get_input(char *line){
     int len = 0, k = 0;
-    char ch, tmp[100];
+    //char ch, *line;
     //char **matches = (char **)NULL;
     //rl_compentry_func_t * command_generator;
+    //rl_bind_key ( '\t' , rl_complete );
 
-    while((ch = getchar()) != '\n' && len < 256){
+    line = readline("");
+    if(*line)
+        add_history(line);
+
+    /*while((ch = getchar()) != '\n' && len < 256){
         buf[len++] = ch;
+        if(ch != ' ')
+            k = 1;
     }
     buf[len] = 0;
+    */
         /*if(ch == ' '){
             k = 0;
         }
@@ -33,8 +41,7 @@ void get_input(char *buf){
         }
     }*/
 
-    //add_history(buf);
-
+    len = strlen(line);
     if(len > 255){
         printf("Command is too long.\n");
         exit(1);

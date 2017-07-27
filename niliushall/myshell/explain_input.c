@@ -14,15 +14,15 @@ int explain_input(char *buf, char arglist[][256]){
     while(*p){
         if(*p == ' '){
             p++;
-            arglist[count][k] = 0;//一定要加结束符
-            count++;
-            k = 0;
         } else {
-            arglist[count][k++] = *p;
-            p++;
+            k = 0;
+            while(*p != ' ' && *p){
+                arglist[count][k++] = *p;
+                p++;
+            }
+            count++;
         }
-    }
-    count++;
+    }   
 
     return count;
 }
