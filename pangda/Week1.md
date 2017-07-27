@@ -2,7 +2,7 @@
 
 ## 周安排
 
-Last Update: Jul 25, 2017
+Last Update: Jul 27, 2017
 
 ### 周一 7.17
 
