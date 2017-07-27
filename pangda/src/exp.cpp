@@ -1,21 +1,28 @@
 #include<iostream>
 
 using namespace std;
+int n__;
+unsigned long long r__;
+bool flag;
 
-int gcd(const int a, const int b) {
-	return b ? gcd(b, a % b) : a;
+void dfs(unsigned long long now, int ori, int depth = 1) {
+	if (now % ori == 0) {
+		flag = true;
+		r__ = now;
+		return;
+	}
+
+	if (depth == 20 || flag)
+		return;
+	
+	dfs(now * 10, ori, depth + 1);
+	dfs(now * 10 + 1, ori, depth + 1);
 }
 
 int main() {
-	int cas;
-	cin >> cas;
-	while (cas--) {
-		int a, b;
-		cin >> a >> b;
-		int ret = b * 2;
-		while (!(a % b == 0 && ret % b == 0 && gcd(a, ret) == b))
-			ret += b;
-		cout << ret << endl;
+	while (cin >> n__, n__) {
+		flag = false;
+		dfs(1, n__);
+		cout << r__ << endl;
 	}
-	return 0;
 }

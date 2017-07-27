@@ -28,5 +28,5 @@ int find_cmd(char *command){
 		closedir(dir);
 		i++;
 	}
-return 0;
+    return 0;
 }

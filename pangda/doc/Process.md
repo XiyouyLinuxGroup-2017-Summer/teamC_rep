@@ -42,10 +42,12 @@ pid_t vfork(void);
 > ②在进程的任意位置调用了`exit`函数。
 
 以上两种情况是同义的，他们都将调用终止处理程序，即使用了`atexit`函数登记的函数，并关闭所有标准I/O流。
+
 > ③ 在进程的任意位置调用`_exit`函数。
 > ④ 在进程的任意位置调用`_Exit`函数。
 
 以上两个情况也是同义的，他们都**不会**调用终止处理程序，而且不会冲洗I/O流。
+
 > ⑤最后一个线程在启动例程中执行了`return`语句。
 > ⑥最后一个线程调用了`pthread_exit`函数。
 
@@ -54,6 +56,7 @@ pid_t vfork(void);
 ### 异常终止
 
 进程的异常终止有以下三种情况
+
 > ①进程的任意位置调用了`abort`函数（这将产生`SIGABRT`信号）。
 > ②进程收到一些信号时。
 > ③最后一个线程对`取消`请求做出相应。
@@ -61,6 +64,7 @@ pid_t vfork(void);
 可以看到前两种情况中，第一种情况是第二种情况的一个特例。
 
 ### 其他相关
+
  - 若子进程在运行时父进程已经结束，此时子进程会成为“孤儿进程”，内核会将之置为`init`进程的子进程。
 
 # 等待子进程结束
@@ -71,6 +75,7 @@ pid_t vfork(void);
 pid_t wait(int *stat_loc);
 pid_t waitpid(pid_t pid, int *stat_loc, int options);
 ```
+
  - 返回值：若函数执行成功，则返回`得到状态的进程id`；若函数执行出错则在大部分情况下返回`-1`，在指定了一定参数时返回`0`。
  - `stat_loc`：指定为一个`int`指针。函数将把获取到的进程终止时的状态存储在该指针指向的区域。若将参数设置为`NULL`，则表示父进程不关心子进程的终止状态，将会丢弃这部分内容。
  - `pid`：指定要等待其结束的进程的`pid`，函数将仅在它结束的时候返回。若指定为`-1`，此种情况下`waitpid`与`wait`等效；若指定为`0`，此时将等待`gid`等同于调用`进程组id`的任一子进程；其他情况下等同于等待`pid`等于该参数绝对值的进程。
@@ -83,7 +88,9 @@ pid_t waitpid(pid_t pid, int *stat_loc, int options);
  - 信号系统相关：子进程终止时内核会向父进程发送`SIGCHLD`信号，父进程既可以以此来设计控制系统处理该信号，也可以选择忽略该信号（但子进程的终止状态会一直保存）。
 
 ### 参数
+
 其中，`options`可以设置为以下四种情况相互做位或运算得到的值。
+
 |选项|意义|
 |-|-|
 |`0`|不设置任何特殊功能|
@@ -92,6 +99,7 @@ pid_t waitpid(pid_t pid, int *stat_loc, int options);
 |`WUNTRACED`|若实现支持作业控制，而由`pid`指定的任一子进程已处于停止状态，并且其状态自停止以来还未报告过，则返回其状态。|
 
 其中，通过`stat_loc`参数拿到的值可以使用以下宏来检测其终止状态：
+
 |宏|意义|
 |-|-|
 |`WIFEXITED(stat_loc)`|若为正常终止的子进程返回的状态，则为真|
@@ -116,6 +124,7 @@ int execvp(const char *file, char *const argv[]);
 int execvpe(const char *file, char *const argv[], char *const envp[]);
 int fexecve(int fd, char *const argv[], char *const envp[]);
 ```
+
  - 返回值：若函数执行成功无返回值，函数执行失败则返回`-1`。
  - `path`：要执行的程序的路径。既可以是绝对路径也可以是相对路径。
  - `file`：要执行的程序的文件名。若指定的参数中包含“/”，则将他认为是一个路径，若不包含，则将在`PATH`环境变量中指定的目录下进行搜索。
@@ -155,6 +164,7 @@ int setgid(gid_t gid);		//设置进程实际组ID
 int seteuid(uid_t uid);		//设置进程有效用户ID
 int setegid(gid_t gid);		//设置进程有效用户组ID
 ```
+
  - 返回值：函数若执行成功，则返回`0`，若失败则返回`-1`。
  - `uid`：要设置的`uid`。
  - `gid`：要设置的`gid`。
@@ -169,6 +179,7 @@ int nice(int incr);
 int getpriority(int which, id_t who);
 int setpriority(int which, id_t who, int value);
 ```
+
  - 返回值：`nice`和`getpriority`若执行成功则返回新的`nice`值，若执行出错则返回`-1`；`setpriority`若执行成功则返回`0`，出错则返回`-1`。
  - `incr`：要增加的`nice`值。若`incr`取负数，则会减少`nice`值。当`incr`参数的取值超过指定范围，会自动将之设置为可以取到的最大值。
  - `which`：表示`who`属于那种类型。
@@ -178,6 +189,7 @@ int setpriority(int which, id_t who, int value);
 ### 参数
 
 其中，`which`参数可取以下值：
+
 |选项|意义|
 |-|-|
 |`PRIO_PROCESS`|表示`who`是一个`pid`|
@@ -192,6 +204,7 @@ int setpriority(int which, id_t who, int value);
 pid_t setsid(void);
 pid_t getsid(pid_t pid);
 ```
+
  - 返回值：若成功，则返回`进程组id`，若执行失败则返回`-1`。
  - `pid`：若指定为`0`，则使之返回调用进程的会话首进程的进程组ID。
 
