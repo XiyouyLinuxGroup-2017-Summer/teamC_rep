@@ -23,9 +23,10 @@
 #define OUT_REDIRECT  1//输出重定向
 #define IN_REDIRECT   2//输入重定向
 #define HAVE_PIPE     3//管道命令
+#define IN_APPEND     4//>>
 
 void print_prompt(void);//打印提示符
-void get_input(char *);//输入
+//void get_input(char *);//输入
 int explain_input(char *, char a[][256]);//解析输入命令
-void do_cmd(int, char a[][256]);//执行命令
+void do_cmd(int, char a[][256], int, char b[][256]);//执行命令
 int find_cmd(char *);//查找可执行程序
