@@ -1,0 +1,34 @@
+2.迭代器
+
+回文算法    
+for(i = 0,j = s.length()-1;i <= j;i++,j--) {
+
+}
+
+int a[10001];
+
+int di(int n) {
+    if(a[n]) {
+        return a[n];    
+    }
+    
+    if(n == 0) {
+        return 3;
+    }
+
+    a[n] = (di(n-1)-1)*2;
+
+    return a[n];
+}
+//快速幂算法
+
+atoi() 字符串转整形
+itoi() 整形转字符串
+
+
+搜索  学着用c++STL库写   
+贪心    
+DP      
+
+
+
