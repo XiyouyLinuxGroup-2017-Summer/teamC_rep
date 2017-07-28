@@ -1,0 +1,47 @@
+dfs 深度优先搜索
+
+存储 二维数组
+
+int dx[] = {0,0.1,-1};
+int dy[] = {1,-1,0,0};
+
+bool isSafe(int x,int y) {
+    if(x < 0 || x >= 5 || y < 0 || y >= 5 || visited[x][y] == 'x') {
+        return false;
+    }
+    return true;
+}
+
+void dfs(int x,int y) {
+    if(x == 5 && y == 5) {
+        count++;
+        return;
+    }
+    for(int i = 0;i < 4;i++) {
+        int nextx = x + dx[i];
+        int nexty = y + dy[i];
+        if(isSafe(nextx,nexty)) {
+            visited[nextx][nexty] = ' ';
+            dfs(nextx,nexty);
+            visited[nextx][nexty] = 'x';
+        }
+    }
+    
+    
+}
+
+dfs(0,0);
+
+dfs(int num,int col) {
+    if(num == k) {
+        res++;
+        return;
+    }
+    for(i = 0;i < 4;i++) {
+        
+    }
+    
+}
+
+
+
