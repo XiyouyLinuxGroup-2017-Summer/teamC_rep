@@ -33,7 +33,7 @@ int main (void)
         }
         case -1:{
             printf("Process creation error\n");
-            return 0;
+            exit(0);
         }
         default:{
             i = 5;
@@ -44,7 +44,7 @@ int main (void)
                 sleep(1);
             }
             printf("Parent`s var=%d, globVar=%d\n", var, globVar);
-            return 0;
+           exit(0);
         }
     }
 
