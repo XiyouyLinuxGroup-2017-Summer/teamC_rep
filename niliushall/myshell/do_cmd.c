@@ -191,17 +191,20 @@ void do_cmd(int argcount, char arglist[][256], int count_t, char history[][256])
                     printf("%s: command not found\n", arg[0]);
                     exit(0);
                 }
-                if((fd2 = open("/tmp/iknow", O_CREAT|O_RDONLY|O_TRUNC, 0644)) < 0){
+                if((fd2 = open("/tmp/iknow", O_CREAT|O_WRONLY|O_TRUNC, 0644)) < 0){
                     printf("file creation failed\n");
                     exit(0);
                 }
+//int i;
+//for( i = 0; i < argcount; i++)
+  //  printf("arg : %s\n", arg[i]);
                 dup2(fd2, 1);
                 execvp(arg[0], arg);
                 exit(0);
             }
             
             /*退出子进程*/
-            if(waitpid(pid2, &status, 0) < 0){
+            if(waitpid(pid2, &status2, 0) < 0){
                 printf("wait for child process error\n");
                 exit(0);
             }
@@ -215,8 +218,9 @@ void do_cmd(int argcount, char arglist[][256], int count_t, char history[][256])
                 printf("open temp file error\n");
                 exit(0);
             }
-
-            dup2(fd2, 0);
+//for(i = 0; i < argcount; i++)
+  //  printf("argnext : %s\n", argnext[i]);
+            dup2(fd2, 0); 
             execvp(argnext[0], argnext);
 
             if(remove("/tmp/iknow") < 0)
@@ -245,9 +249,15 @@ void do_cmd(int argcount, char arglist[][256], int count_t, char history[][256])
             break;
     }
 
-    /*若有&， 则后台执行 -- error*/
+    /*若有&， 则后台执行 -- modify*/
     if(background == 1){
         printf("[process is %d]\n", pid);
+        if((pid = fork()) < 0){
+            printf("fork2 error\n");
+            exit(0);
+        }
+        else if(pid > 0)
+            exit(0);
 
         return;
     }

@@ -12,13 +12,10 @@ void print_prompt(void){
     printf("\033[1;32mmyshell\033[0m:\033[1;34m%s\033[0m$ ", getcwd(buf, 256));
 }
 
-#include "myshell.h"
-
-/*获取用户输入*/
+/*
 void get_input(char *line){
     int len = 0, k = 0;
-    //char ch, *line;
-    //char **matches = (char **)NULL;
+    //char ch, *line;mZ    //char **matches = (char **)NULL;
     //rl_compentry_func_t * command_generator;
     //rl_bind_key ( '\t' , rl_complete );
 
@@ -26,14 +23,14 @@ void get_input(char *line){
     if(*line)
         add_history(line);
 
-    /*while((ch = getchar()) != '\n' && len < 256){
+    while((ch = getchar()) != '\n' && len < 256){
         buf[len++] = ch;
         if(ch != ' ')
             k = 1;
     }
     buf[len] = 0;
-    */
-        /*if(ch == ' '){
+    
+        if(ch == ' '){
             k = 0;
         }
         else if(ch == '\t')
@@ -46,7 +43,7 @@ void get_input(char *line){
             buf[len++] = ch;
             tmp[k++] = 0;
         }
-    }*/
+    }
 
     len = strlen(line);
     if(len > 255){
@@ -54,7 +51,7 @@ void get_input(char *line){
         exit(1);
     }
 }
-
+*/
 int main (int argc, char **argv)
 {
     int i, len, count_t = 0;
@@ -64,6 +61,8 @@ int main (int argc, char **argv)
     char *buf = NULL;//存放输入命令
     char history[1000][256];
     char *line = NULL;
+    char start[300] = "\033[1;32mmyshell\033[0m:\033[1;34m";
+    char t[256] = {0};
 
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
@@ -81,11 +80,18 @@ int main (int argc, char **argv)
     while(1){
         memset(buf, 0, 256);//将buf清零  
         memset(arglist, 0, 25600);  
+        memset(start, 0, 300);
+        strcpy(start, "\033[1;32mmyshell\033[0m:\033[1;34m");
         
-        print_prompt();
-
+        //print_prompt();
+//printf("111\n");
         //get-input
-        line = readline("");
+        strcat(start, getcwd(t, 256));
+//printf("222\n");
+        strcat(start, "\033[0m$ ");
+//printf("333\n");
+        line = readline(start);
+//printf("444\n");
         if(*line)
             add_history(line);
         strncpy(buf, line, 256);
