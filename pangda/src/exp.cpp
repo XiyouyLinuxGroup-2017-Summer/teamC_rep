@@ -1,28 +1,25 @@
 #include<iostream>
-
+#include<cctype>
+#include<algorithm>
 using namespace std;
-int n__;
-unsigned long long r__;
-bool flag;
-
-void dfs(unsigned long long now, int ori, int depth = 1) {
-	if (now % ori == 0) {
-		flag = true;
-		r__ = now;
-		return;
-	}
-
-	if (depth == 20 || flag)
-		return;
-	
-	dfs(now * 10, ori, depth + 1);
-	dfs(now * 10 + 1, ori, depth + 1);
-}
 
 int main() {
-	while (cin >> n__, n__) {
-		flag = false;
-		dfs(1, n__);
-		cout << r__ << endl;
-	}
+    int cas;
+    cin >> cas;
+    while (cas--) {
+        string st;
+		cin >> st;
+		auto sortcmp = [](const char a, const char b) {
+			if (tolower(a) == tolower(b))
+				return a < b;
+			return tolower(a) < tolower(b);
+		};
+		sort(st.begin(), st.end(), sortcmp);
+
+		cout << st << endl;
+		while (next_permutation(st.begin(), st.end(), sortcmp)) {
+			cout << st << endl;
+		}
+    }
+    return 0;
 }
