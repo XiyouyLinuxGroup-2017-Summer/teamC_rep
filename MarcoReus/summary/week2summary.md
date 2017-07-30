@@ -55,7 +55,7 @@ int setuid(uid_t uid);      //设置进程实际用户ID
 int setgid(gid_t gid);      //设置进程实际组ID
 ```
 
-10. 改变进程的优先级
+10. 进程调度，改变进程的优先级
 
 ```
 int getpriority(int which, id_t who);
