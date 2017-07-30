@@ -1,4 +1,5 @@
 #include<portal/crypt.h>
+#include<portal/socket.h>
 #include<iostream>
 #include<cstdio>
 #include<string>
@@ -6,8 +7,19 @@
 using namespace std;
 using namespace libportal;
 int main() {
-    string a = CryptRSA::encrypt("pubkey.pem", "gaygayxiaoyuan");
-    cout << "Before Decrypt:" << a << endl << endl;;
-    cout << "After Decrypt:" << CryptRSA::decrypt("prikey.pem", a) << endl;
+    /*TCPSocket sock("127.0.0.1", 13135);
+    sock.Connect();
+    string res = sock.Read();
+    cout << res << endl;*/
+    CryptRSA::generate_keyfile("b.pem", "i.pem");
+    string a = "nihao, b";
+    CryptRSA::encrypt("b.pem", a);
+    cout << "before decrypt: " << endl;
+    cout << a << endl;
+
+    CryptRSA::decrypt("i.pem", a);
+    cout << "After decrypt: " << endl;
+    cout << a << endl;
+
     return 0;
 }

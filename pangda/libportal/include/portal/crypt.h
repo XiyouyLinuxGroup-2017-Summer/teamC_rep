@@ -33,6 +33,7 @@ private:
 public:
     static std::string decrypt(const std::string, const std::string&);
     static std::string encrypt(const std::string, const std::string&);
+    static int generate_keyfile(std::string pubkey_name, std::string prikey_name);
 };
 
 class CryptMD5 {
@@ -41,5 +42,6 @@ private:
 public:
     static std::string encrypt(const std::string&);
 };
+
 
 }
