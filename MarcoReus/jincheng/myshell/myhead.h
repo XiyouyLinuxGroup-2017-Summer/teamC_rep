@@ -18,17 +18,20 @@
 #include <sys/wait.h>
 #include <dirent.h>
 
-#define normal          0
-#define out_redirect    1 
-#define in_redirect     2
-#define have_pipe       3
+#define normal               0
+#define out_redirect         1 
+#define double_out_redirect  2
+#define in_redirect          3
+#define have_pipe            4
 
 #define is_background   1
 #define not_background  0                  
 
 void print_prompt();                    //打印开始时的所在路径            
-void get_input();                       //获得用户输出        
+void get_input(char *buf,int *his_count,char history[100][256]);                       //获得用户输出        
 void explain_input(char *buf,int *argcount,char arglist[100][256]);     //接受输入
-void do_cmd(int argcount,char arglist[100][256]);     //执行命令
+void do_cmd(int argcount,char arglist[100][256],int his_count,char history[100][256]);     //执行命令
+
+char last_dir[256];
 
 #endif
