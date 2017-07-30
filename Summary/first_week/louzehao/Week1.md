@@ -2,7 +2,7 @@
 
 ## 周安排
 
-Last Update: Jul 22, 2017
+Last Update: Jul 27, 2017
 
 ### 周一 7.17
 
@@ -34,7 +34,7 @@ Last Update: Jul 22, 2017
 |项目|进度|完成时间|
 |-|-|-|
 |*ls*|至少完成-R 以及染色|7.18|
-|*C++ Primer*|继续进度一章||
+|*C++ Primer*|继续进度一章|7.25|
 |*vjudge*|完成当日题目|7.20|
 
 ### 周五 7.21
@@ -42,7 +42,7 @@ Last Update: Jul 22, 2017
 |项目|进度|完成时间|
 |-|-|-|
 |*ls*|完成要求的内容|7.18|
-|*Introduciton to Alogorithms*|红黑树概念||
+|*Introduciton to Alogorithms*|红黑树概念|7.25|
 |*vjudge*|完成当日题目|7.21|
 
 ### 周六 7.22

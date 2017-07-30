@@ -19,6 +19,7 @@
 #include<string>
 #include<sys/socket.h>
 #include<netinet/in.h>
+#include<unistd.h>
 
 namespace libportal {
 
@@ -30,17 +31,33 @@ protected:
     const int CONN_TCP = SOCK_STREAM;
     const int CONN_UDP = SOCK_DGRAM;
 public:
-    virtual int Connect(std::string address, unsigned int port) = 0;
+    virtual int Connect() = 0;
 
-};    
+};   
+
+class TCPClient {
+public:
+    int client_socket;
+public:
+    int Read();
+    int Write();
+    int Close();
+}; 
+
 
 class TCPSocket: public Socket {
 private:
 
 public:
-    TCPSocket();
-    virtual int Connect(std::string address, unsigned int port);
+    TCPSocket(std::string address, unsigned int port);
+    ~TCPSocket();
+    int Connect();
+    int Listen();
+    TCPClient Accept();
+    int Write();
+    std::string Read();
 };
+
 
 
 }
