@@ -20,6 +20,7 @@
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<unistd.h>
+
 namespace libportal {
 
 class Socket {
@@ -32,19 +33,31 @@ protected:
 public:
     virtual int Connect() = 0;
 
-};    
+};   
+
+class TCPClient {
+public:
+    int client_socket;
+public:
+    int Read();
+    int Write();
+    int Close();
+}; 
+
 
 class TCPSocket: public Socket {
 private:
 
 public:
     TCPSocket(std::string address, unsigned int port);
+    ~TCPSocket();
     int Connect();
     int Listen();
-    int Accept();
+    TCPClient Accept();
     int Write();
     std::string Read();
 };
+
 
 
 }

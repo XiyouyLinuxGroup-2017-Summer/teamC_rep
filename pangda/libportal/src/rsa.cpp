@@ -33,7 +33,8 @@ std::string CryptRSA::encrypt(const std::string pubkey_filename, const std::stri
 
     std::string ret;
     RSA *encrypt_key = RSA_new();
-    if (PEM_read_RSA_PUBKEY(pubkey_file, &encrypt_key, 0, 0) == NULL) {
+    //PEM_read_RSA_PUBKEY
+    if (PEM_read_RSAPublicKey(pubkey_file, &encrypt_key, 0, 0) == NULL) {
         assert(false);
         return "";
     }
@@ -83,4 +84,42 @@ std::string CryptRSA::decrypt(const std::string prikey_filename, const std::stri
     fclose(prikey_file);
     CRYPTO_cleanup_all_ex_data();
     return ret;
+}
+
+int CryptRSA::generate_keyfile(std::string pubkey_name, std::string prikey_name) {
+    //TODO:check if pubname priname is NULL
+    //生成key,这里设置了1024，意味着最多可以编解码1024/8-11=117个字节，
+    //RSA_F4为公钥指数，一般情况下使用RSA_F4即可，
+    //其它两个参数可以设置为NULL
+    RSA *rsa = RSA_generate_key(KEYLENGTH, RSA_F4, NULL, NULL);
+    if (rsa == NULL) {
+        libportal::lib_error("Error on CryptRSA::generate_keyfile, function: RSA_generate_key");
+        return -1;
+    }
+
+    BIO *bio = BIO_new_file(pubkey_name.c_str(), "wb");
+    if (bio == NULL) {
+        libportal::lib_error("Error on CryptRSA::generate_keyfile, function: BIO_new_file");
+        return -2;
+    }
+
+    if (PEM_write_bio_RSAPublicKey(bio, rsa) == 0) {
+        libportal::lib_error("Error on CryptRSA::generate_keyfile, function: PEM_write_bio_RSAPublicKey");
+        return -3;
+    }
+    BIO_free_all(pBio);
+
+    bio = BIO_new_file(prikey_name.c_str(), "w");
+    if (bio == NULL) {
+        libportal::lib_error("Error on CryptRSA::generate_keyfile, function: BIO_new_file");
+        return -4;
+    }
+    if (PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL) == 0) {
+        libportal::lib_error("Error on CryptRSA::generate_keyfile, function: PEM_write_bio_RSAPrivateKey");
+        return -5;
+    }
+    BIO_free_all(bio);
+    RSA_free(rsa);
+
+    return 0;
 }
