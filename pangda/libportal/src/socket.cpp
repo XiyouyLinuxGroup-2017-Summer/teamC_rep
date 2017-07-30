@@ -21,6 +21,7 @@
 #include<cstring>
 #include<errno.h>
 using libportal::TCPSocket;
+using libportal::TCPClient;
 
 TCPSocket::TCPSocket(std::string address, unsigned int port) {
     static const int addr_mode = ADDR_IPV4;
@@ -61,9 +62,11 @@ int TCPSocket::Listen() {
     perror("listen");
 }
 
-int TCPSocket::Accept() {
+TCPClient TCPSocket::Accept() {
     auto sz = sizeof(struct sockaddr_in);
-    return accept(socket_fd, (sockaddr *)&addr, (socklen_t *)&sz);
+    TCPClient ret;
+    ret.client_socket = accept(socket_fd, (sockaddr *)&addr, (socklen_t *)&sz);
+    return ret;
 }
 
 std::string TCPSocket::Read() {

@@ -1,25 +1,21 @@
-#include<iostream>
-#include<cctype>
-#include<algorithm>
-using namespace std;
+#include<unistd.h>
+#include<stdio.h>
+#include<stdlib.h>
 
+int glb = 10;
 int main() {
-    int cas;
-    cin >> cas;
-    while (cas--) {
-        string st;
-		cin >> st;
-		auto sortcmp = [](const char a, const char b) {
-			if (tolower(a) == tolower(b))
-				return a < b;
-			return tolower(a) < tolower(b);
-		};
-		sort(st.begin(), st.end(), sortcmp);
-
-		cout << st << endl;
-		while (next_permutation(st.begin(), st.end(), sortcmp)) {
-			cout << st << endl;
-		}
-    }
-    return 0;
+	pid_t pid = vfork();
+	int val = 10;
+	if (pid == 0) {
+		val++;
+		glb++;
+		return 0;
+	} else if (pid > 0) {
+		printf("%d\n", val);
+	} else {
+		perror("fork");
+	}
+	int pp = 0;
+	printf("%d", pp);
+	return 0;
 }
