@@ -69,15 +69,34 @@ TCPClient TCPSocket::Accept() {
     return ret;
 }
 
-std::string TCPSocket::Read() {
-    char buf[20]={0};           //TODO:ADD BUFSIZE
-
-    read(socket_fd, buf, 10);
-    perror("read");
-
-    return std::string(buf);
+int TCPSocket::Read(std::string &dat) {
+    char buf[51] = { 0 };         //TODO:FIX MAGIC NUMBER
+    while (read(socket_fd, buf, 50) > 0) {
+        dat += buf;
+        memset(buf, 0, sizeof(buf));
+    }
+    return 0;
 }
 
-int TCPSocket::Write() {
-    write(socket_fd, "Hello", 6);
+int TCPSocket::Write(std::string dat) {
+    //write(socket_fd, dat.c_str(), dat.length());
+    send(socket_fd, dat.c_str(), dat.length(), 0);
+}
+
+
+int TCPClient::Read(std::string &dat) {
+    char buf[51] = { 0 };        //TODO:FIX MAGIC NUMBER
+    while (read(client_socket, buf, 50) > 0) {
+        dat += buf;
+        memset(buf, 0, sizeof(buf));
+    }
+    return 0;
+}
+
+int TCPClient::Write(std::string dat) {
+    write(client_socket, dat.c_str(), dat.length());
+}
+
+int TCPClient::Close() {
+    close(client_socket);
 }

@@ -15,57 +15,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
-#pragma once
-#include<string>
-#include<sys/socket.h>
-#include<netinet/in.h>
+#include<sys/epoll.h>
 #include<unistd.h>
-
 namespace libportal {
 
-class Socket {
-protected:
-    int socket_fd = -1;
-    sockaddr_in addr;
-    const int ADDR_IPV4 = AF_INET;
-    const int CONN_TCP = SOCK_STREAM;
-    const int CONN_UDP = SOCK_DGRAM;
-public:
-    virtual int Connect() = 0;
-};   
-
-class TCPClient {
+class MultiplexEpoll {
 private:
-    int client_socket;
+    int epoll_fd;
 public:
-    friend class TCPSocket;
-    int Read(std::string &dat);
-    int Write(std::string dat);
-    int Close();
-}; 
-
-
-class TCPSocket: public Socket {
-private:
-
-public:
-    TCPSocket(std::string address, unsigned int port);
-    ~TCPSocket();
-    int Connect();
-    int Listen();
-    TCPClient Accept();
-    int Write(std::string dat);
-    int Read(std::string &dat);
-
-};
-
-class UDPSocket: public Socket {
-private:
-
-public:
-    UDPSocket(std::string address, unsigned int port);
-    ~UDPSocket();
-
+    MultiplexEpoll();
+    ~MultiplexEpoll();
+    int Add(int fd, unsigned int events, void *ptr);
+    int Modify(int fd, unsigned int events, void *ptr);
+    int Delete(int fd);
+    int Wait();
+    int WaitUntil();
 };
 
 

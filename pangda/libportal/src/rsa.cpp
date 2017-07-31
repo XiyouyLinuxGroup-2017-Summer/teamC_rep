@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 #include<portal/crypt.h>
+#include<portal/global.h>
 #include<cstring>
 
 using libportal::CryptRSA;
@@ -107,7 +108,7 @@ int CryptRSA::generate_keyfile(std::string pubkey_name, std::string prikey_name)
         libportal::lib_error("Error on CryptRSA::generate_keyfile, function: PEM_write_bio_RSAPublicKey");
         return -3;
     }
-    BIO_free_all(pBio);
+    BIO_free_all(bio);
 
     bio = BIO_new_file(prikey_name.c_str(), "w");
     if (bio == NULL) {
