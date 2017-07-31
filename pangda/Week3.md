@@ -33,8 +33,3 @@ Last Update: Jul 31, 2017
 - [x] *libportal*：搭建起框架
 - [ ] *Introduction to Algorithms*：网络流
 - [ ] *Virtual Judge*：完成当日题目
-
-### 周六 8.5
-
-- [x] *libportal*：完成Number、Crypt-RSA模块
-- [ ] *Virtual Judge*：完成当日题目
