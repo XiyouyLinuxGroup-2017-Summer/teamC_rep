@@ -329,7 +329,7 @@ void do_cmd(int argcount,char arglist[100][256],int historycount,char history[10
 			    }
 
                 //执行管道后面的命令
-                if(!(find_command(argnext[0])){
+                if(!(find_command(argnext[0]))) {
 					printf("%s :command not found !\n",argnext[0]);
 					exit(0);
 			    }
@@ -355,7 +355,7 @@ void do_cmd(int argcount,char arglist[100][256],int historycount,char history[10
     //杀死父进程,后台进行
     if(backgroud == 1 && pid != 0){
         printf("[process id %d]\n",pid);
-        exit(0);
+        return;
     }
 
     //父进程等待子进程
