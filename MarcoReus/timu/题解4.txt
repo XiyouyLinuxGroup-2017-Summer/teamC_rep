@@ -1,0 +1,63 @@
+1.起始状态    已知图的状态
+2.终止状态    图的终止状态
+3.中间状态    如何标记一个大油田
+
+stack<int> s;
+s.top();
+s.push();
+s.pop;
+s.empty();
+堆栈模拟递归
+
+if(!s.empty()) {
+    top = s.top();
+    s.pop();
+   
+    if() 
+        return；
+    else
+        continue;
+
+    for() {
+        
+        if() {
+            s.push();
+        }
+    }
+}
+
+void dfs() {
+    for(int i = 0;i < `) {
+
+    }
+}
+
+
+set<> t;
+t.insert();插入到集合
+
+
+                            fu
+                        fu      zi1001
+                    fu    zi  zi   zun
+                        1002        1003
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
