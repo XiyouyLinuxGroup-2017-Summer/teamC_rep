@@ -20,6 +20,7 @@
 #include<arpa/inet.h>
 #include<cstring>
 #include<errno.h>
+#include<fcntl.h>
 using libportal::TCPSocket;
 using libportal::TCPClient;
 
@@ -70,31 +71,40 @@ TCPClient TCPSocket::Accept() {
 }
 
 int TCPSocket::Read(std::string &dat) {
-    char buf[51] = { 0 };         //TODO:FIX MAGIC NUMBER
-    while (read(socket_fd, buf, 50) > 0) {
+    char buf;        //TODO:FIX MAGIC NUMBER
+    while (read(socket_fd, &buf, 1) > 0) {
+        if (buf == 1)
+            break;
         dat += buf;
-        memset(buf, 0, sizeof(buf));
     }
-    return 0;
 }
 
 int TCPSocket::Write(std::string dat) {
-    //write(socket_fd, dat.c_str(), dat.length());
-    send(socket_fd, dat.c_str(), dat.length(), 0);
+    std::string buf = dat + char(1);
+    write(socket_fd, buf.c_str(), buf.length());
 }
 
 
 int TCPClient::Read(std::string &dat) {
-    char buf[51] = { 0 };        //TODO:FIX MAGIC NUMBER
-    while (read(client_socket, buf, 50) > 0) {
+    char buf;        //TODO:FIX MAGIC NUMBER
+    //read(client_socket, buf, 128);
+    //dat = buf;
+    while (read(client_socket, &buf, 1) > 0) {
+        if (buf == 1)
+            break;
+        dat += buf;
+    }
+
+    /*while (read(client_socket, buf, 50) > 0) {
         dat += buf;
         memset(buf, 0, sizeof(buf));
-    }
+    }*/
     return 0;
 }
 
 int TCPClient::Write(std::string dat) {
-    write(client_socket, dat.c_str(), dat.length());
+    std::string buf = dat + char(1);
+    write(client_socket, buf.c_str(), buf.length());
 }
 
 int TCPClient::Close() {
