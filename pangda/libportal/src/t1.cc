@@ -13,11 +13,14 @@ int main() {
     sock.Connect();
     string a;
     cin >> a;
-    sock.Write(a);
-    string res1;
-    sock.Read(res1);
-    cout << "[Echo Sever]" << res1 << endl;
-
+    sleep(1);
+    for (int j = 0; j < 100; j++) {
+        sock.Write(a);
+        string res1;
+        sock.Read(res1);
+        cout << "[Echo Sever]" << res1 << endl;
+        sleep(1);
+    }
 
     return 0;
 }

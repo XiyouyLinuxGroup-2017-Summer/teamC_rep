@@ -22,12 +22,15 @@ void *echo(void *arg) {
     while (limit = poll.Wait(evts, 100)) {
         for (int i = 0; i < limit; i++) {
             TCPClient *clt = (TCPClient *)evts[i].data.ptr;
-            string recv;
-            clt->Read(recv);
-            clt->Write(recv);
-            clt->Close();
-            poll.Delete(clt->getfd());
-            delete clt;
+            //for (int j = 0; j < 100; j++) {
+                string recv;
+                clt->Read(recv);
+                cout << recv << endl;
+                clt->Write(recv);
+            //}
+            //clt->Close();
+            //poll.Delete(clt->getfd());
+            //delete clt;
         }
 
     }
