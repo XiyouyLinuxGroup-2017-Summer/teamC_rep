@@ -16,7 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 #pragma once
+<<<<<<< HEAD
+=======
 #include<portal/multiplexing.h>
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
 #include<string>
 #include<sys/socket.h>
 #include<netinet/in.h>
@@ -40,10 +43,13 @@ private:
     int client_socket;
 public:
     friend class TCPSocket;
+<<<<<<< HEAD
+=======
     //friend class MultiplexEpoll;
     int getfd() {
         return client_socket;
     }
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
     int Read(std::string &dat);
     int Write(std::string dat);
     int Close();
