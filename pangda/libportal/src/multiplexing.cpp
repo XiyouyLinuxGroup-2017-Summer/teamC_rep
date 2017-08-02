@@ -16,6 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 #include<portal/multiplexing.h>
+<<<<<<< HEAD
+=======
+#include<ctime>
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
 
 using libportal::MultiplexEpoll;
 
@@ -27,17 +31,29 @@ MultiplexEpoll::~MultiplexEpoll() {
     close(epoll_fd);                //TODO:Handle Error
 }
 
+<<<<<<< HEAD
 int MultiplexEpoll::Add(int fd, unsigned int events, void *ptr) {
     epoll_data evt_data;
     evt_data.ptr = ptr;
+=======
+int MultiplexEpoll::Add(int fd, unsigned int events, void *clt_socket) {
+    epoll_data evt_data;
+    evt_data.ptr = clt_socket;
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
     epoll_event this_event = { events, evt_data };
 
     return epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &this_event);
 }
 
+<<<<<<< HEAD
 int MultiplexEpoll::Modify(int fd, unsigned int events, void *ptr) {
     epoll_data evt_data;
     evt_data.ptr = ptr;
+=======
+int MultiplexEpoll::Modify(int fd, unsigned int events, void *clt_socket) {
+    epoll_data evt_data;
+    evt_data.ptr = clt_socket;
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
     epoll_event this_event = { events, evt_data };
 
     return epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &this_event);
@@ -47,10 +63,19 @@ int MultiplexEpoll::Delete(int fd) {
     return epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 }
 
+<<<<<<< HEAD
 int MultiplexEpoll::Wait() {
 
 }
 //int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
 int MultiplexEpoll::WaitUntil() {
 
+=======
+int MultiplexEpoll::Wait(epoll_event *events, int size) {
+    return epoll_wait(epoll_fd, events, size, -1);
+}
+//int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+int MultiplexEpoll::WaitUntil(epoll_event *events, int size, int seconds) {
+    return epoll_wait(epoll_fd, events, size, time(NULL) + seconds);
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
 }
