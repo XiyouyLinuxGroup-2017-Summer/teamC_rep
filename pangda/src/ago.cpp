@@ -1,41 +1,64 @@
-#include<cstdio>
-#include<cstring>
+#include<iostream>
 using namespace std;
 
-int r__, c__;
-char g[30][30];
-bool vis[26];
-int result;
+struct stud {
+    int a, b;
+    int now;
+    bool awake;
+} stu[15];
 
-const int DIR[4][2] = { -1, 0, 1, 0, 0, 1, 0, -1};
+int n__;
+int sleep;
 
-void dfs(int lastx, int lasty, int depth) {
-    if (depth > result)
-        result = depth;
-    for (int i = 0; i < 4; i++) {
-        int thisx = lastx + DIR[i][0],
-            thisy = lasty + DIR[i][1];
-        
-        if (thisx >= r__ || thisy >= c__ || thisx < 0 || thisy < 0 || vis[g[thisx][thisy] - 'A'])
-            continue;
-        vis[g[thisx][thisy] - 'A'] = true;
-        dfs(thisx, thisy, depth + 1);
-        vis[g[thisx][thisy] - 'A'] = false;
+void time_passed(stud &ts) {
+    ts.now++;
+    if (ts.now <= ts.a) {
+        ts.awake = true;
+    } else {
+        if ((ts.now == ts.a + 1 && sleep * 2 <= n__) || ts.now == ts.a + ts.b + 1) {
+            ts.awake = true;
+            ts.now = 1;
+        } else {
+            ts.awake = false;
+        }
     }
 }
 
 int main() {
-    while (~ scanf("%d%d", &r__, &c__)) {
-        memset(vis, 0, sizeof(vis));
-        result = 0;
-        for (int i = 0; i < r__; i++) {
-            for (int j = 0; j < c__; j++) {
-                scanf(" %c", &g[i][j]);
-            }
+    int casno = 0;
+    while (cin >> n__, n__) {
+        casno++;
+        sleep = 0;
+        bool flag = true;
+        for (int i = 0; i < n__; i++) {
+            cin >> stu[i].a >> stu[i].b >> stu[i].now;
+            if (stu[i].now <= stu[i].a)
+                stu[i].awake = true;
+            else
+                stu[i].awake = false;
+            if (!stu[i].awake)
+                sleep++;
         }
-        vis[g[0][0] - 'A'] = true;
-        dfs(0, 0, 1);
-        printf("%d\n", result);
+        if (sleep == 0) {
+            flag = false;
+            cout << "Case " << casno << ": 1" << endl;
+        }
+        for (int t = 1; t < 100000 && flag; t++) {
+            int ns = 0;
+            for (int i = 0; i < n__; i++) {
+                time_passed(stu[i]);
+                if (!stu[i].awake)
+                    ns++;
+            }
+            if (ns == 0) {
+                cout << "Case " << casno << ": " << t + 1 << endl;
+                flag = false;
+                break;
+            }
+            sleep = ns;
+        }
+        if (flag)
+            cout << "Case " << casno << ": -1" << endl;
+
     }
-    return 0;
 }
