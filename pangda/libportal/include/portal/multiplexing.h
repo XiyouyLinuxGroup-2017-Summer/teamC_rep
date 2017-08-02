@@ -26,6 +26,14 @@ public:
     MultiplexEpoll();
     ~MultiplexEpoll();
     int Add(int fd, unsigned int events, void *ptr);
+<<<<<<< HEAD
+    int Modify(int fd, unsigned int events, void *ptr);
+    int Delete(int fd);
+    int Wait();
+    int WaitUntil();
+};
+
+=======
 
     int Modify(int fd, unsigned int events, void *ptr);
 
@@ -34,6 +42,7 @@ public:
     int Wait(epoll_event *events, int size);
     int WaitUntil(epoll_event *events, int size, int seconds);
 };
+>>>>>>> d0706c3cc234a13fa7db8013657873b2e12ba570
 
 
 }

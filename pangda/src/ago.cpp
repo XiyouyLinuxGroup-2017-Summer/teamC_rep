@@ -1,66 +1,64 @@
-#include<cstdio>
-#include<cstring>
-#include<algorithm>
+#include<iostream>
 using namespace std;
 
-int path[88][88], vis[88][88], p, q, cnt;
-bool flag;
+struct stud {
+    int a, b;
+    int now;
+    bool awake;
+} stu[15];
 
-int dx[8] = {-1, 1, -2, 2, -2, 2, -1, 1};
-int dy[8] = {-2, -2, -1, -1, 1, 1, 2, 2};
+int n__;
+int sleep;
 
-bool judge(int x, int y)
-{
-    if(x >= 1 && x <= p && y >= 1 && y <= q && !vis[x][y] && !flag)
-        return true;
-    return false;
-}
-
-void DFS(int r, int c, int step)
-{
-    path[step][0] = r;
-    path[step][1] = c;
-    if(step == p * q)
-    {
-        flag = true;
-        return ;
-    }
-    for(int i = 0; i < 8; i++)
-    {
-        int nx = r + dx[i];
-        int ny = c + dy[i];
-        if(judge(nx,ny))
-        {
-
-            vis[nx][ny] = 1;
-            DFS(nx,ny,step+1);
-            vis[nx][ny] = 0;
+void time_passed(stud &ts) {
+    ts.now++;
+    if (ts.now <= ts.a) {
+        ts.awake = true;
+    } else {
+        if ((ts.now == ts.a + 1 && sleep * 2 <= n__) || ts.now == ts.a + ts.b + 1) {
+            ts.awake = true;
+            ts.now = 1;
+        } else {
+            ts.awake = false;
         }
     }
 }
 
-int main()
-{
-    int i, j, n, cas = 0;
-    scanf("%d",&n);
-    while(n--)
-    {
-        flag = 0;
-        scanf("%d%d",&p,&q);
-        memset(vis,0,sizeof(vis));
-        vis[1][1] = 1;
-        DFS(1,1,1);
-        printf("Scenario #%d:\n",++cas);
-        if(flag)
-        {
-            for(i = 1; i <= p * q; i++)
-                printf("%c%d",path[i][1] - 1 + 'A',path[i][0]);
+int main() {
+    int casno = 0;
+    while (cin >> n__, n__) {
+        casno++;
+        sleep = 0;
+        bool flag = true;
+        for (int i = 0; i < n__; i++) {
+            cin >> stu[i].a >> stu[i].b >> stu[i].now;
+            if (stu[i].now <= stu[i].a)
+                stu[i].awake = true;
+            else
+                stu[i].awake = false;
+            if (!stu[i].awake)
+                sleep++;
         }
-        else
-            printf("impossible");
-        printf("\n");
-        if(n != 0)
-            printf("\n");
+        if (sleep == 0) {
+            flag = false;
+            cout << "Case " << casno << ": 1" << endl;
+        }
+        for (int t = 1; t < 100000 && flag; t++) {
+            int ns = 0;
+            for (int i = 0; i < n__; i++) {
+                time_passed(stu[i]);
+                if (!stu[i].awake)
+                    ns++;
+            }
+            if (ns == 0) {
+                cout << "Case " << casno << ": " << t + 1 << endl;
+                flag = false;
+                break;
+            }
+            sleep = ns;
+        }
+        if (flag)
+            cout << "Case " << casno << ": -1" << endl;
+
     }
-    return 0;
 }
