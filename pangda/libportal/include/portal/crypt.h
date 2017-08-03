@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 #include<openssl/ssl.h>
+#include<openssl/bn.h>
 #include<openssl/err.h>
 #include<openssl/rsa.h>
 #include<openssl/md5.h>

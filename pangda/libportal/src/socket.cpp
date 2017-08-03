@@ -18,11 +18,28 @@
 #include<portal/socket.h>
 #include<portal/global.h>
 #include<arpa/inet.h>
+#include<sys/types.h>
+#include<netinet/in.h>
+#include<netdb.h>
 #include<cstring>
 #include<errno.h>
 #include<fcntl.h>
+
+using libportal::Net;
 using libportal::TCPSocket;
 using libportal::TCPClient;
+
+std::string Net::GetServerIP(std::string server) {
+    struct hostent *ht;
+    ht = gethostbyname(server.c_str());
+    if (ht == NULL) {
+        libportal::lib_error("");
+        return "";
+    }
+
+    std::string ret = inet_ntoa(*((struct in_addr *)ht->h_addr));
+    return ret;
+}
 
 TCPSocket::TCPSocket(std::string address, unsigned int port) {
     static const int addr_mode = ADDR_IPV4;
@@ -47,20 +64,21 @@ TCPSocket::~TCPSocket() {
 }
 
 int TCPSocket::Connect() {
-    if (connect(socket_fd, (sockaddr *)&addr, sizeof(addr)) < 0) {
+    int ret = connect(socket_fd, (sockaddr *)&addr, sizeof(addr));
+    if (ret < 0) {
         libportal::lib_error("");
         perror("conn err");
-        return -1;
     }
-    return 0;
+    return ret;
 }
 
 int TCPSocket::Listen() {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    bind(socket_fd, (sockaddr *)&addr, sizeof(sockaddr_in));
+    int ret = bind(socket_fd, (sockaddr *)&addr, sizeof(sockaddr_in));
     perror("bind");
-    listen(socket_fd, 10);        //TODO:Fix Magic Number
+    ret = listen(socket_fd, 10);        //TODO:Fix Magic Number
     perror("listen");
+    return ret;
 }
 
 TCPClient TCPSocket::Accept() {
@@ -72,41 +90,37 @@ TCPClient TCPSocket::Accept() {
 
 int TCPSocket::Read(std::string &dat) {
     char buf;        //TODO:FIX MAGIC NUMBER
-    while (read(socket_fd, &buf, 1) > 0) {
+    int ret;
+    while ((ret = read(socket_fd, &buf, 1)) > 0) {
         if (buf == 1)
             break;
         dat += buf;
     }
+    return ret;
 }
 
 int TCPSocket::Write(std::string dat) {
     std::string buf = dat + char(1);
-    write(socket_fd, buf.c_str(), buf.length());
+    return write(socket_fd, buf.c_str(), buf.length());
 }
 
 
 int TCPClient::Read(std::string &dat) {
     char buf;        //TODO:FIX MAGIC NUMBER
-    //read(client_socket, buf, 128);
-    //dat = buf;
-    while (read(client_socket, &buf, 1) > 0) {
+    int ret;
+    while ((ret = read(client_socket, &buf, 1)) > 0) {
         if (buf == 1)
             break;
         dat += buf;
     }
-
-    /*while (read(client_socket, buf, 50) > 0) {
-        dat += buf;
-        memset(buf, 0, sizeof(buf));
-    }*/
-    return 0;
+    return ret;
 }
 
 int TCPClient::Write(std::string dat) {
     std::string buf = dat + char(1);
-    write(client_socket, buf.c_str(), buf.length());
+    return write(client_socket, buf.c_str(), buf.length());
 }
 
 int TCPClient::Close() {
-    close(client_socket);
+    return close(client_socket);
 }
