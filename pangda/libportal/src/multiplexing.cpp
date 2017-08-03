@@ -15,10 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
-#include<portal/multiplexing.h>
+#include<portal/socket.h>
 #include<ctime>
 
 using libportal::MultiplexEpoll;
+using libportal::MultiplexEpollEvent;
+using libportal::TCPClient;
 
 MultiplexEpoll::MultiplexEpoll() {
     epoll_fd = epoll_create(100);   //TODO:Fix Magic Number
@@ -28,30 +30,50 @@ MultiplexEpoll::~MultiplexEpoll() {
     close(epoll_fd);                //TODO:Handle Error
 }
 
-int MultiplexEpoll::Add(int fd, unsigned int events, void *clt_socket) {
+int MultiplexEpoll::Add(TCPClient &client, unsigned int events) {
     epoll_data evt_data;
-    evt_data.ptr = clt_socket;
+    evt_data.ptr = &client;
     epoll_event this_event = { events, evt_data };
 
-    return epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &this_event);
+    return epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client.client_socket, &this_event);
 }
 
-int MultiplexEpoll::Modify(int fd, unsigned int events, void *clt_socket) {
+int MultiplexEpoll::Modify(TCPClient &client, unsigned int events) {
     epoll_data evt_data;
-    evt_data.ptr = clt_socket;
+    evt_data.ptr = &client;
     epoll_event this_event = { events, evt_data };
 
-    return epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &this_event);
+    return epoll_ctl(epoll_fd, EPOLL_CTL_MOD, client.client_socket, &this_event);
 }
 
-int MultiplexEpoll::Delete(int fd) {
-    return epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+int MultiplexEpoll::Delete(TCPClient &client) {
+    return epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client.client_socket, NULL);
 }
 
-int MultiplexEpoll::Wait(epoll_event *events, int size) {
-    return epoll_wait(epoll_fd, events, size, -1);
+int MultiplexEpoll::Wait(MultiplexEpollEvent *events, int size) {
+    epoll_event *temp = new epoll_event[size];
+    int ret = epoll_wait(epoll_fd, temp, size, -1);
+    for (int i = 0; i < size; i++) {
+        events[i].self = temp[i];
+    }
+    delete[] temp;
+    return ret;
 }
-//int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
-int MultiplexEpoll::WaitUntil(epoll_event *events, int size, int seconds) {
-    return epoll_wait(epoll_fd, events, size, time(NULL) + seconds);
+
+int MultiplexEpoll::WaitUntil(MultiplexEpollEvent *events, int size, int seconds) {
+    epoll_event *temp = new epoll_event[size];
+    int ret = epoll_wait(epoll_fd, temp, size, time(NULL) + seconds);
+    for (int i = 0; i < size; i++) {
+        events[i].self = temp[i];
+    }
+    delete[] temp;
+    return ret;
+}
+
+TCPClient *MultiplexEpollEvent::GetClient() {
+    return (TCPClient *)self.data.ptr;
+}
+
+bool MultiplexEpollEvent::CheckEvent(unsigned int event) {
+    return self.events & event;
 }

@@ -17,20 +17,21 @@ void onexit(int s) {
 }
 
 void *echo(void *arg) {
-    epoll_event evts[100];
+    MultiplexEpollEvent evts[100];
     int limit;
     while (limit = poll.Wait(evts, 100)) {
         for (int i = 0; i < limit; i++) {
-            TCPClient *clt = (TCPClient *)evts[i].data.ptr;
-            //for (int j = 0; j < 100; j++) {
-                string recv;
-                clt->Read(recv);
-                cout << recv << endl;
-                clt->Write(recv);
-            //}
-            //clt->Close();
-            //poll.Delete(clt->getfd());
-            //delete clt;
+            TCPClient *clt = evts[i].GetClient();
+            string recv;
+            int ret = clt->Read(recv);
+            if (ret == 0) {
+                poll.Delete(*clt);
+                clt->Close();
+                continue;
+            }
+            cout << recv << endl;
+            clt->Write(recv);
+
         }
 
     }
@@ -46,7 +47,7 @@ int main() {
     while (WATCHDOG) {
         TCPClient *clt = new TCPClient;
         *clt = sock.Accept();
-        poll.Add(clt->getfd(), EPOLLET | EPOLLIN, clt);
+        poll.Add(clt, EPOLLET | EPOLLIN | EPOLLOUT);
     }
     return 0;
 }

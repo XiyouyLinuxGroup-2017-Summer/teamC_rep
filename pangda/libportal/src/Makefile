@@ -1,5 +1,5 @@
 CC = g++
-CXXFLAGS = -Wall -g -O -fPIC -lopenssl
+CXXFLAGS = -Wall -g -O -fPIC -lopenssl -Wno-deprecated-declarations
 INCLUDE = -I ../include
 TARGET = libportal.so
 LIBPATH = /usr/lib/

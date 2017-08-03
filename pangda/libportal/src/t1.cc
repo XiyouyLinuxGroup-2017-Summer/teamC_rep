@@ -14,7 +14,7 @@ int main() {
     string a;
     cin >> a;
     sleep(1);
-    for (int j = 0; j < 100; j++) {
+    for (int j = 0; j < 8; j++) {
         sock.Write(a);
         string res1;
         sock.Read(res1);
