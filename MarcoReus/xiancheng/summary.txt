@@ -1,0 +1,66 @@
+线程相关函数
+
+#include <pthread.h>
+
+int pthread_create(pthread_t thread,pthread_attr_t *attr,void *(*start_routine)(void *),void *arg);
+thread:指针，返回创建的线程ID
+attr:该参数返回线程属性的结构体，NULL表示默认属性
+start_routine:函数指针，创建函数后要调用的函数,也称线程函数
+arg:该参数指向传递给线程函数的参数
+
+pthread_t pthread_self(void)                                                //获得此线程ID
+int pthread_equal(pthread_t thread1,pthread_t thread2)                      //两个进程是否属于同一个线程
+int pthread_once(pthread_once *one_control,void (*init_routine)(void))      //init_routine在进程中只执行一次
+
+typedef struct {
+    int detachstate;    //新创建线程是否与原进程脱离，PTHREAD_CREATE_JOINABLE,PTHREAD_CREATE_DETACH(不能恢复前一种)
+    int schedpolicy;    //调度策略 SCHED_OTHER(正常、非实时)SCHED_RR(实时、轮转法)SCHED_FIFO(实时、先入先出)     
+    struct sched_param schedparam;                  //表示线程的优先级  
+    int inheritsched;                               //PTHREAD_EXPLICIT_SCHED新线程显示所传的attr的属性(默认),PTHREAD_INHERT_SCHED  PTHREAD_INHERIT_SCHED 继承调用者的线程值                    
+    int scope;                                      //表示线程间竞争CPU的范围
+    size_t guardsize;                               //警戒栈的大小
+    int stackaddr_set;                              //stack的地址集
+    void * stackaddr;                               //堆栈的地址
+    size_t stacksize;                               //堆栈的大小              
+} pthread_attr_t;
+
+#include <pthread.h>
+
+int pthread_attr_getdetachstate(pthread_attr_t *attr,int *detachstate);
+int pthread_attr_setdetachstate(pthread_attr_t *attr,int detachstate);
+int pthread_attr_getschedpolicy(pthread_attr_t *attr,int *policy);
+int pthread_attr_setschedpolicy(pthread_attr_t *attr,int policy);
+int pthread_attr_getscheparam(pthread_attr_t *attr,struct sched_param *schedparam);
+int pthread_attr_setscheparam(pthread_attr_t *attr,struct sched_param schedparam);
+int pthread_attr_getinheritsched(pthread_attr_t *attr,int *inherit);
+int pthread_attr_setinheritsched(pthread_attr_t *attr,int inherit);
+int pthread_attr_getscope(pthread_attr_t *attr,int *scope);
+int pthread_attr_setscope(pthread_attr_t *attr,int scope);
+int pthread_attr_getguardsize(pthread_attr_t *attr,void **stackaddr);
+int pthread_attr_setguardsize(pthread_attr_t *attr,void *stackaddr);
+int pthread_attr_getstacksize(pthread_attr_t *attr,size_t *stacksize);
+int pthread_attr_setstacksize(pthread_attr_t *attr,size_t stacksize);
+
+#include <pthread.h>
+
+void pthread_exit(void *retval);
+void pthread_cleanup_push();
+void pthread_cleanup_pop();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
