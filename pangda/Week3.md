@@ -2,7 +2,7 @@
 
 ## 周安排
 
-Last Update: Jul 31, 2017
+Last Update: Aug 3, 2017
 
 ### 周一 7.31
 
@@ -14,19 +14,19 @@ Last Update: Jul 31, 2017
 
 - [x] *Linux C*：8.3-8.4
 - [x] *Advanced Programming in the UNIX Environment*：11.6-11.7
-- [ ] *Virtual Judge*：完成当日题目
+- [x] *Virtual Judge*：完成当日题目
 
 ### 周三 8.2
 
 - [x] *Linux C*：8.5-8.6
 - [x] *Advanced Programming in the UNIX Environment*：12.1-12.3
-- [ ] *Virtual Judge*：完成当日题目
+- [x] *Virtual Judge*：完成当日题目
 
 ### 周四 8.3
 
 - [x] *Advanced Programming in the UNIX Environment*：12.4-12.6
 - [ ] *C++ Primer*：继续一章的内容
-- [ ] *Virtual Judge*：完成当日题目
+- [x] *Virtual Judge*：完成当日题目
 
 ### 周五 8.4
 
