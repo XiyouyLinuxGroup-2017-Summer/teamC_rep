@@ -1,11 +1,9 @@
 #include<portal/crypt.h>
-#include<portal/socket.h>
-#include<sys/epoll.h>
-//#include<portal/multiplexing.h>
-#include<iostream>
-#include<cstdio>
-#include<string>
+#include<portal/network.h>
 #include<signal.h>
+#include<iostream>
+#include<string>
+
 using namespace std;
 using namespace libportal;
 
@@ -47,7 +45,7 @@ int main() {
     while (WATCHDOG) {
         TCPClient *clt = new TCPClient;
         *clt = sock.Accept();
-        poll.Add(clt, EPOLLET | EPOLLIN | EPOLLOUT);
+        poll.Add(*clt, EPOLLET | EPOLLIN | EPOLLOUT);
     }
     return 0;
 }
