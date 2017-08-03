@@ -48,6 +48,30 @@ void pthread_cleanup_push();
 void pthread_cleanup_pop();
 
 
+void pthread_exit(void *retval);        //线程退出
+int pthread_join(pthread_t th,void *thread_return);　　 //等待线程结束
+int pthread_detach(pthread_t th);　　//进入DETACHED状态，该状态无法用join来同步
+
+私有数据
+#include <pthread.h>
+
+int pthread_key_create(pthread_key_t *key,void(*destr_function)(void *));
+int pthread_setspecific();
+void *pthread_getspecific();
+int pthread_key_delete();
+
+
+线程同步
+
+
+
+
+
+
+
+
+
+
 
 
 
