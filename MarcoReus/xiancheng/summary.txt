@@ -26,20 +26,20 @@ typedef struct {
 
 #include <pthread.h>
 
-int pthread_attr_getdetachstate(pthread_attr_t *attr,int *detachstate);
-int pthread_attr_setdetachstate(pthread_attr_t *attr,int detachstate);
-int pthread_attr_getschedpolicy(pthread_attr_t *attr,int *policy);
-int pthread_attr_setschedpolicy(pthread_attr_t *attr,int policy);
-int pthread_attr_getscheparam(pthread_attr_t *attr,struct sched_param *schedparam);
-int pthread_attr_setscheparam(pthread_attr_t *attr,struct sched_param schedparam);
-int pthread_attr_getinheritsched(pthread_attr_t *attr,int *inherit);
-int pthread_attr_setinheritsched(pthread_attr_t *attr,int inherit);
-int pthread_attr_getscope(pthread_attr_t *attr,int *scope);
-int pthread_attr_setscope(pthread_attr_t *attr,int scope);
-int pthread_attr_getguardsize(pthread_attr_t *attr,void **stackaddr);
-int pthread_attr_setguardsize(pthread_attr_t *attr,void *stackaddr);
-int pthread_attr_getstacksize(pthread_attr_t *attr,size_t *stacksize);
-int pthread_attr_setstacksize(pthread_attr_t *attr,size_t stacksize);
+int pthread_attr_getdetachstate(pthread_attr_t *attr,int *detachstate);  //返回detachstate
+int pthread_attr_setdetachstate(pthread_attr_t *attr,int detachstate);   //设置detachstate
+int pthread_attr_getschedpolicy(pthread_attr_t *attr,int *policy);       //返回policy
+int pthread_attr_setschedpolicy(pthread_attr_t *attr,int policy);        //设置policy
+int pthread_attr_getscheparam(pthread_attr_t *attr,struct sched_param *schedparam); //返回
+int pthread_attr_setscheparam(pthread_attr_t *attr,struct sched_param schedparam);  //设置
+int pthread_attr_getinheritsched(pthread_attr_t *attr,int *inherit);      //返回
+int pthread_attr_setinheritsched(pthread_attr_t *attr,int inherit);       //设置
+int pthread_attr_getscope(pthread_attr_t *attr,int *scope);               //返回
+int pthread_attr_setscope(pthread_attr_t *attr,int scope);                //设置
+int pthread_attr_getguardsize(pthread_attr_t *attr,void **stackaddr);     //返回
+int pthread_attr_setguardsize(pthread_attr_t *attr,void *stackaddr);      //设置
+int pthread_attr_getstacksize(pthread_attr_t *attr,size_t *stacksize);    //返回
+int pthread_attr_setstacksize(pthread_attr_t *attr,size_t stacksize);     //设置
 
 #include <pthread.h>
 
@@ -48,6 +48,7 @@ void pthread_cleanup_push();
 void pthread_cleanup_pop();
 
 
+<<<<<<< HEAD
 void pthread_exit(void *retval);        //线程退出
 int pthread_join(pthread_t th,void *thread_return);　　 //等待线程结束
 int pthread_detach(pthread_t th);　　//进入DETACHED状态，该状态无法用join来同步
@@ -87,4 +88,68 @@ int pthread_key_delete();
 
 
 
+=======
+私有数据
+#include<pthread.h>
+
+TSD池
+static struct pthread_key_struct pthread_keys[PTHREAD_KEY_MAX] = ({0,NULL});
+
+int pthread_key_create(pthread_key_t *key,void (*destr_function)(void *));
+//TSD池分配一项，赋值给key。第一个参数，指向键值的指针，第二个函数指针，退出后调用该函数
+int pthread_key_setspecific(pthread_key_t key,const void* pointer);
+//将pointer与key相连，先释放原来线程的数据用以回收空间。
+void *pthread_getspecific(pthread_key_t key);
+//得到key所关联的线程值
+int pthread_key_delete(pthread_key_t key);
+//删除一个键，键所占的内存被释放了，而键关联的线程数据所占内存不会被释放
+
+线程同步
+
+互斥锁
+int pthread_mutex_init(pthread_mutex_t *mutex,const pthread_mutexattr_t *mutexattr);
+//动态初始化互斥锁
+//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;//静态初始化
+//mutexattr是互斥锁属性，
+//PTHREAD_MUTEX_TIMED_NP     //普通锁 当一个线程加锁，请求锁的其他线程形成队列，解压后按照优先级来获得锁             
+//PTHREAD_MUTEX_RECURSIVE            //嵌套锁  允许一个线程多次加锁，并可unlock多次解锁。解锁时重新竞争   
+//PTHREAD_MUTEX_ERRORCHECK_NP        //检错锁    同一个线程请求同一个锁，返回EDEACLK，否则普通锁      
+//PTHREAD_MUTEX_ADAPTIVE_NP          //适应锁    解锁后重新竞争
+
+
+int pthread_mutex_destory(pthread_mutex_t *mutex); 
+//清理互斥锁
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+//mutex被锁住，则线程处于堵塞状态
+int pthread_mutex_ulock(pthread_t *mutex);
+//解开互斥锁
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
+//只要能加锁,就加
+
+条件变量
+符合条件对变量操作
+int pthread_cond_init();
+//态初始化  函数
+//静态初始化
+int pthrea_cond_wait (pthread_cond_timedwait());
+//timed parh
+int pthread_cond_timedwait();
+int pthread_signal();
+//激活一个线程
+//激活一个进成，''
+int pthread_cond_broad broad)(pthread_cond_t *cond);
+//激活所有的线程
+int puhread_cond();
+
+int pthread_cond_destory(pthread_cond_t *cond);
+//清除cond指向的条件变量
+
+异步信号
+int pthread_kill(pthread_t threadid,);
+//向特定的线程发出信号signo
+int pthread_sigmask(int how,const sigset_t *newmask,sigset_t *oldmask);
+//设置信号屏蔽码，但对不允许响应的Restart信号进行保护
+int sigwait(const sigset_t *set,int *sig);
+//用来阻塞线程，等待set中的信号之一到达，并将到达的信号存入*sig
+>>>>>>> my_own
 

@@ -1,0 +1,52 @@
+贪心算法:
+每个人最少，总和最少
+尽量用比较大钱去吃，获得最优的解
+
+处理字符串
+char *func(char *str) {
+    while(*str == '0') {
+        str++;
+    }
+    int len = strlen(str);
+    char *t = str + len - 1;
+    while(*t == '0') {
+        t--;
+        *t = 0;
+    }
+    if(*t = '.') {
+        *t = 0;
+    }
+
+    return str;
+}
+
+
+dfs()
+找字母，求最大
+
+
+int a[];
+int b[];
+int c[];
+
+//input
+
+for(int i = 0;i < 10000001;i++) {
+    int count = 0;
+    for(int j = 0;j < n;i++) {
+        if(c[j] > a[j]) {
+            count++;
+        }
+        count++;
+    }
+    if(count == n) {
+        break;
+    }
+    /*
+    if((c[j] = a[j] && count >= n - count) || c[j] = a[j] + b[j] ) {
+        c[j] = 0;
+    }
+    */
+    c[j]++;
+}
+
