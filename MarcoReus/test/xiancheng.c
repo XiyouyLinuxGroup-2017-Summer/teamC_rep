@@ -54,3 +54,7 @@ void* thread_worker(void* p)
         main_counter++; /* 主counter 加一 */   
     } 
 }
+
+//没有上锁的后果。
+
+
