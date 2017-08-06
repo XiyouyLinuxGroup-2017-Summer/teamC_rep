@@ -25,11 +25,11 @@ Last Update: Aug 3, 2017
 ### 周四 8.3
 
 - [x] *Advanced Programming in the UNIX Environment*：12.4-12.6
-- [ ] *C++ Primer*：继续一章的内容
+- [x] *C++ Primer*：继续一章的内容
 - [x] *Virtual Judge*：完成当日题目
 
 ### 周五 8.4
 
 - [x] *libportal*：搭建起框架
-- [ ] *Introduction to Algorithms*：网络流
-- [ ] *Virtual Judge*：完成当日题目
+- [x] *Introduction to Algorithms*：网络流
+- [x] *Virtual Judge*：完成当日题目
