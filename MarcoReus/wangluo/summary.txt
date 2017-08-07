@@ -1,6 +1,6 @@
 TCP/IP协议：
-最下面的一层，多种逻辑链路和媒体访问协议
-
+网络接口层:最下面的一层，多种逻辑链路和媒体访问协议，Internet层送来的数据分成帧，通过物理链路传送，或从网络上接受物理帧，抽取数据交给其上的Internet层
+Internet层:网络层负责在发送端和接受端之间建立虚拟路径。
 
 
 
@@ -28,7 +28,7 @@ domain:协议簇
 AF_UNIX:
 AF_INET:
 AF_INET6:
-type:套接字类型
+type:
 SOCKET_STREAM:
 SOCK_DGRAM:
 SOCK_RAW:
