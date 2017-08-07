@@ -1,0 +1,73 @@
+<<<<<<< HEAD
+TCP/IP协议：
+网络接口层:最下面的一层，多种逻辑链路和媒体访问协议，Internet层送来的数据分成帧，通过物理链路传送，或从网络上接受物理帧，抽取数据交给其上的Internet层
+Internet层:网络层负责在发送端和接受端之间建立虚拟路径。
+
+
+
+socket
+struct socketaddr{
+    unsigned short sa_family;   //地址类型
+    char sa_data[14];           //14字节协议地址
+};
+
+struct socketaddr_in{
+    unsigned short sin_family;   //地址类型
+    unsigned short int sin_port;  //端口号
+    struct in_addr sin_addr;     //ip地址
+    unsigned char sin_zero[8];    //填充字节，一般赋值为0
+};
+struct in_addr{
+    unsigned long s_addr;
+}
+
+#include<sys/types.h>
+#include<sys/socket.h>
+
+int socket(int domain,int types.h,int protocall);
+domain:协议簇
+AF_UNIX:
+AF_INET:
+AF_INET6:
+type:
+SOCKET_STREAM:
+SOCK_DGRAM:
+SOCK_RAW:
+=======
+linux网络编程实际就是套接字编程
+套接字的地址结构
+#include <linux/socket.h>
+
+struct sockaddr{
+    unsigned short sa_family;           /*地址类型,AF_xxx*/
+    char sa_data[14];                   /*14字节的协议地址*/
+};
+
+struct socketaddr_in {
+    unsigned short sin_family;   /*地址类型*/
+    unsigned short int sin_port; /*端口号*/
+    struct in_addr sin_addr;     /*IP地址*/
+    unsigned char sin_zero[8];   /*填充字节，一般赋值0*/
+};
+
+struct in_addr {
+    unsigned long s_addr;
+};
+
+
+#include <sys/types.h>
+#include <sys/socket.h>
+int socket(int domain,int type,int prtocal);
+
+domain
+AF_UNIX:创建只在本机进行通信的套接字
+AF_INET:使用IPv4 TCP/IP协议
+AF_INET6:使用IPv6 TCP/IP协议
+type:
+SOCK_STREAM:TCP流套接字
+SOCK_DGRAM:创建UDP数据报套接字
+SOCK_RAW:创建原始套接字
+protocol通常为0
+
+>>>>>>> my_own
+

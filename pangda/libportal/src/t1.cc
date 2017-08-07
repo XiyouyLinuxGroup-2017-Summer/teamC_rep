@@ -1,8 +1,6 @@
 #include<portal/crypt.h>
-#include<portal/socket.h>
-//#include<portal/multiplexing.h>
+#include<portal/network.h>
 #include<iostream>
-#include<cstdio>
 #include<string>
 
 using namespace std;

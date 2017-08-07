@@ -17,11 +17,10 @@
 ***************************************************************************/
 #pragma once
 #include<string>
-#include<sys/socket.h>
-#include<netinet/in.h>
 #include<unistd.h>
 #include<sys/epoll.h>
-
+#include<sys/socket.h>
+#include<netinet/in.h>
 
 namespace libportal {
 
@@ -75,6 +74,10 @@ public:
     TCPClient *GetClient();
     bool CheckEvent(unsigned int event);
 };
+
+unsigned int EP_READABLE = EPOLLIN;
+unsigned int EP_WRITEABLE = EPOLLOUT;
+unsigned int EP_ET = EPOLLET;
 
 
 class MultiplexEpoll {
