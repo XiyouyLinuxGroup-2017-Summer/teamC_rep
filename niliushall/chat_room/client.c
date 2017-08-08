@@ -1,10 +1,3 @@
-/*************************************************************************
-	> File Name: client.c
-	> Author: 
-	> Mail: 
-	> Created Time: 2017年08月08日 星期二 15时28分02秒
- ************************************************************************/
-
 #include "myhead.h"
 
 #define INVALID_USERINFO 'n'
@@ -17,15 +10,16 @@ int get_userinfo(char *buf, int len) {
         return -1;
 
     i = 0;
-    while((buf[i++] = getchar()) != 0 && i < len-1)
+    while((buf[i++] = getchar()) != '\n' && i < len-1)
         ;
-    buf[i] = 0;
+    buf[i-1] = 0;
+printf("+%s+\n", buf);
     
     return 0;
 }
 
 void input_userinfo(int conn_fd, char *string) {
-    char recv_buf[ BUFSIZE ] = {0};
+    char recv_buf[ BUFSIZE ];
     char input_buf[ NAMESIZE ] = {0};
     int flag_userinfo = 0;
 
@@ -41,11 +35,11 @@ void input_userinfo(int conn_fd, char *string) {
         if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
             err("recv", __LINE__);
 
-        if(recv_buf[0] == 'y') {
+        if(recv_buf[0] == VALID_USERINFO) {
             flag_userinfo = VALID_USERINFO;
         } else {
             printf("%s error, input again\n", string);
-            flag_userinfo = VALID_USERINFO;
+            flag_userinfo = INVALID_USERINFO;
         }
     } while(flag_userinfo == INVALID_USERINFO);
 }
@@ -54,6 +48,7 @@ int main(int argc, char **argv) {
     int conn_fd, serv_port;
     struct sockaddr_in serv_addr;
     char recv_buf[BUFSIZE];
+    int i, ret;
 
     if(argc != 3)
         err("The number of argc", __LINE__);
@@ -65,7 +60,7 @@ int main(int argc, char **argv) {
 
     /*检查参数*/
     if(!strcmp(argv[1], "-a")) {
-        if(inet_aton(argv[2], &serv_addr.sin_addr)) {
+        if(inet_aton(argv[2], &serv_addr.sin_addr) < 0) {
             printf("invalid server ip address\n");
             exit(1);
         }
@@ -80,10 +75,31 @@ int main(int argc, char **argv) {
         err("socket", __LINE__);
 
     /*向服务器发送连接请求*/
-    if(connect(conn_fd, serv_addr, sizeof(serv_port), 0) < 0)
+    if(connect(conn_fd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
         err("connect", __LINE__);
 
     input_userinfo(conn_fd, "username");
+    input_userinfo(conn_fd, "password");
+// sleep(1);
+    printf("aaaaa\n");
+    memset(recv_buf,0,sizeof(recv_buf));
+    
+
+
+    if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0) {
+        printf("data is too long\n");
+        exit(1);
+    }
+
+    sleep(3);
+    if(recv_buf != NULL)
+        printf("%s\n", recv_buf);
+    printf("ret = %d\n", ret);
+    for(i = 0; i < ret; i++)
+        printf("%c", recv_buf[i]);
+    printf("\n");
+
+    close(conn_fd);
 
     return 0;
 }

@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define SERV_PORT 6666  //服务器端口号
+#define SERV_PORT 4507  //服务器端口号
 #define LISTEN_SIZE 12  //连接请求队列最大长度
 #define GROUP_MEMBER 10 //群组最大用户数
 #define NAMESIZE  21    //昵称最大长度
