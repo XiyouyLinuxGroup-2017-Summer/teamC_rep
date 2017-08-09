@@ -1,10 +1,3 @@
-/*************************************************************************
-	> File Name: myhead.h
-	> Author: 
-	> Mail: 
-	> Created Time: 2017年08月08日 星期二 15时28分48秒
- ************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -20,12 +13,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define SERV_PORT 6666  //服务器端口号
-#define LISTEN_SIZE 12  //连接请求队列最大长度
+#define CLEAR system("clear")
+
+#define SERV_PORT 4507  //服务器端口号
 #define GROUP_MEMBER 10 //群组最大用户数
 #define NAMESIZE  21    //昵称最大长度
 #define PASSWDSIZE 21   //密码最大长度
 #define BUFSIZE 512     //最大传输字节数
+#define LISTENSIZE 30
 
 #define USERNAME 0      //接收到用户名
 #define PASSWORD 1      //接收到密码
@@ -48,6 +43,12 @@ typedef struct group {         // 记录群组信息
     int account[ GROUP_MEMBER ];
     char group_name[ NAMESIZE ];
 }group;
+
+typedef struct message {
+    char choice[5];
+    int conn_fd;
+}message;
+
 
 void err(const char *, int ); // 错误处理
 
