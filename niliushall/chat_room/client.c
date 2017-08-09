@@ -43,6 +43,15 @@ void input_userinfo(int conn_fd, char *string) {
     } while(flag_userinfo == INVALID_USERINFO);
 }
 
+void login(int conn_fd){
+    char recv_buf[ BUFSIZE ];
+
+    input_userinfo(conn_fd, "username");
+    input_userinfo(conn_fd, "password");
+
+    printf("Login success.\n");
+}
+
 int main(int argc, char **argv) {
     int conn_fd, serv_port;
     struct sockaddr_in serv_addr;
@@ -76,24 +85,8 @@ int main(int argc, char **argv) {
     /*向服务器发送连接请求*/
     if(connect(conn_fd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
         err("connect", __LINE__);
-
-    input_userinfo(conn_fd, "username");
-    input_userinfo(conn_fd, "password");
-
-    printf("Login success.\n");
-    memset(recv_buf,0,sizeof(recv_buf));
     
-    if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0) {
-        printf("data is too long\n");
-        exit(1);
-    }
-
-    if(recv_buf != NULL)
-        printf("%s\n", recv_buf);
-    for(i = 0; i < ret; i++)
-        printf("%c", recv_buf[i]);
-    printf("\n");
-
+    login(conn_fd);
     close(conn_fd);
 
     return 0;
