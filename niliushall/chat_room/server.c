@@ -4,7 +4,6 @@ struct userinfo1 {
     char username[32];
     char password[32];
 };
-//struct userinfo1 users[] = {{"linux", "unix"}, {"123", "234"}, {"clh", "clh"}, {" ", " "}};
 
 int find_name(int account, char *passwd) {
     int i, flag = 0;
@@ -32,8 +31,12 @@ void *service(void *arg) {
     int ret, n, account;
     int conn_fd = *(int *) arg;
     int choice;
-    int flag_recv = 0;
+    int flag = 0;
     char recv_buf[ BUFSIZE ];
+    FILE *fp = NULL;
+
+    struct online_user *pHead = (struct online_user *)malloc(sizeof(struct online_user));
+    struct online_user *pEnd = pHead, *p;
 
     do{
         if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0){  //接收choice
@@ -54,7 +57,7 @@ void *service(void *arg) {
                         err("recv", __LINE__);
                     recv_buf[ret-1] = 0;
 
-                    if(flag_recv == USERNAME) {
+                    if(flag == USERNAME) {
                         account = atoi(recv_buf);
 
                         n = find_name(account, passwd);
@@ -63,12 +66,19 @@ void *service(void *arg) {
                             send_data(conn_fd, "n");
                         else {
                             send_data(conn_fd, "y\n");
-                            flag_recv = PASSWORD;
+                            flag = PASSWORD;
                         }
-                    } else if (flag_recv == PASSWORD) {
+                    } else if (flag == PASSWORD) {
                         if(!strcmp(passwd, recv_buf)) {
                             send_data(conn_fd, "y\n");
                             printf("%d login\n", account);
+
+                            /*添加为在线状态*/
+                            struct online_user *pNew;
+                            pNew = (struct online_user *)malloc(sizeof(struct online_user));
+                            pNew -> user_fd = conn_fd;
+                            pNew -> account = account;
+                            pEnd -> next = pNew;
                             break;
                         } else
                             send_data(conn_fd, "n");
@@ -77,10 +87,36 @@ void *service(void *arg) {
             }
             break;
 
-            case 2: {
+            case 2: {   //注册
+                while(1) {
+                    if((ret = recv(conn_fd, account, sizeof(account), 0)) < 0)
+                        err("recv", __LINE__);
 
+                    if(!count)
+                        return ;
+
+                    fp = fopen("userinfo", "at+");
+                    flag = 0;
+                    while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+                        if(account == tmp.account)
+                            flag = 1;
+
+                    if(flag)
+                        send(conn_fd, "n", 2, 0);
+                    else
+                        send(conn_fd, "y", 2, 0);
+                }
             }
             break;
+
+            case 0: {   //退出，离线状态
+                p = pHead -> next;
+                while(p -> account != account) {
+                    pEnd = p;
+                    p = p -> next;
+                }
+                pEnd -> next = p -> next;
+            }
         }
     } while(choice);
 }

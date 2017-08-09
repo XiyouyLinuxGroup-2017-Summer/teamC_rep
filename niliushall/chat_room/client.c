@@ -3,11 +3,15 @@
 #define INVALID_USERINFO 'n'
 #define VALID_USERINFO   'y'
 
+
 /*函数声明*/
 int get_userinfo(char *buf, int len);
 void input_userinfo(int conn_fd, char *string);
 void menu_login(int conn_fd);
 void login(int conn_fd);
+void my_register(int conn_fd);
+
+
 
 int main(int argc, char **argv) {
     int conn_fd, serv_port;
@@ -73,7 +77,7 @@ void menu_login(int conn_fd) {
         fflush(stdin);
 
         switch(choice) {
-            case 1: {
+            case 1: {   //login
                 if(send(conn_fd, "1", 2, 0) < 0)
                     err("send", __LINE__);
 
@@ -85,14 +89,29 @@ void menu_login(int conn_fd) {
                 else
                     printf("connect with server error\n");
                 /*chat menu*/
+
                 break;
             }
-            case 2: {
-                register(conn_fd);
+
+            case 2: {   //register
+                if(send(conn_fd, "1", 2, 0) < 0)
+                    err("send", __LINE__);
+
+                if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+                    err("recv", __LINE__);
+
+                if(recv_buf[0] == 'y')
+                    my_register(conn_fd);
+                else
+                    printf("connect with server error\n");
                 break;
             }
-            case 0:
+
+            case 0:    //退出并修改在线状态
+                if(send(conn_fd, "0", 2, 0) < 0)
+                    err("send", __LINE__);
                 break;
+
             default: {
                 printf("Input error. The number should be 0 ~ 2\n");
                 printf("Press any key to continue...\n");
@@ -163,5 +182,61 @@ void input_userinfo(int conn_fd, char *string) {
 
 /*注册函数*/
 void my_register( int conn_fd ) {
-    char recv_buf[ BUFSIZE ]; 
+    char recv_buf[ BUFSIZE ];
+    int account, flag = 0;
+    char name[21], passwd[21], tpasswd[21];
+
+    while(1) {
+        if(!flag){
+            printf("Please input your account number:\n(no mroe than 6 digits , input 0 to exit)\n");
+            flag = 1;
+        }
+        scanf("%d", &account);
+        fflush(stdin);
+
+        if(!account)
+            return;
+
+        if(send(conn_fd, account, sizeof(int), 0) < 0)
+            err("send", __LINE__);
+
+        if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+            err("recv", __LINE__);
+
+        if(recv_buf[0] == 'y')
+            break;
+        else
+            printf("This account has existed, input again:\n");
+    }
+
+    while(1) {
+        printf("Please input your nick name (no ' '):\n");
+        scanf("%s", name);
+
+        if(send(conn_fd, name, sizeof(name), 0) < 0)
+            err("send", __LINE__);
+
+        if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+            err("recv", __LINE__);
+
+        if(recv_buf[0] == 'y')
+            break;
+    }
+
+    flag = 0;
+    while(1) {
+        if(!flag){
+            printf("Please input password:\n");
+        }
+
+        scanf("%s", passwd);
+        printf("Please input password again:\n");
+        scanf("%s", tpasswd);
+        if(!strcmp(password, tpasswd)){
+            if(send(conn_fd, passwd, sizeof(passwd), 0) < 0)
+                err("send", __LINE__);
+        } else {
+            printf("The password is inconsistent, input again:\n");
+        }
+    }
 }

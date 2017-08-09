@@ -25,29 +25,29 @@
 #define USERNAME 0      //接收到用户名
 #define PASSWORD 1      //接收到密码
 
-typedef struct userinfo {   //记录用户信息
+struct userinfo {   //记录用户信息
     char name[ NAMESIZE ];      //用户名
     int account;         //帐号
     char passwd[ PASSWDSIZE ];    // 密码
-}userinfo;
+};
 
-typedef struct online_user {   // 记录在线用户信息
+struct online_user {   // 记录在线用户信息
     int user_fd;    //用户socket
     char name[ NAMESIZE ];
     int account;
     struct online_user *next;
-}online_user;
+};
 
-typedef struct group {         // 记录群组信息
+struct group {         // 记录群组信息
     char name[ GROUP_MEMBER ][ NAMESIZE ];
     int account[ GROUP_MEMBER ];
     char group_name[ NAMESIZE ];
-}group;
+};
 
-typedef struct message {
+struct message {
     char choice[5];
     int conn_fd;
-}message;
+};
 
 
 void err(const char *, int ); // 错误处理
