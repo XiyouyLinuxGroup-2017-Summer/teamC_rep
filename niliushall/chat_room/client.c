@@ -76,8 +76,10 @@ void menu_login(int conn_fd) {
             case 1: {
                 if(send(conn_fd, "1", 2, 0) < 0)
                     err("send", __LINE__);
+
                 if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
                     err("recv", __LINE__);
+
                 if(recv_buf[0] == 'y')
                     login(conn_fd);
                 else
@@ -89,6 +91,8 @@ void menu_login(int conn_fd) {
                 register(conn_fd);
                 break;
             }
+            case 0:
+                break;
             default: {
                 printf("Input error. The number should be 0 ~ 2\n");
                 printf("Press any key to continue...\n");
@@ -124,6 +128,8 @@ int get_userinfo(char *buf, int len) {
     while((buf[i++] = getchar()) != '\n' && i < len-1)
         ;
     buf[i-1] = 0;
+
+    // fflush(stdin);
     
     return 0;
 }
@@ -138,7 +144,6 @@ void input_userinfo(int conn_fd, char *string) {
         printf("%s : ", string);
         if(get_userinfo(input_buf, NAMESIZE) < 0)
             err("error return from get_userinfo", __LINE__);
-        
         if(send(conn_fd, input_buf, sizeof(input_buf), 0) < 0)
             err("send", __LINE__);
 

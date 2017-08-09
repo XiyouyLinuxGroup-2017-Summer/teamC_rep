@@ -63,10 +63,3 @@ void err(const char *string, int line) {
     char *p = ctime(&time);
     return p;
 }*/
-
-userinfo * read_userinfo(userinfo *pHead) {
-    userinfo *pNew, *pEnd = pHead;
-
-    pNew = (userinfo *)malloc(sizeof(userinfo));
-    
-}

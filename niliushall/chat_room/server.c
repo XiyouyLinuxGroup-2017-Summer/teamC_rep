@@ -4,19 +4,23 @@ struct userinfo1 {
     char username[32];
     char password[32];
 };
-struct userinfo1 users[] = {{"linux", "unix"}, {"123", "234"}, {"clh", "clh"}, {" ", " "}};
+//struct userinfo1 users[] = {{"linux", "unix"}, {"123", "234"}, {"clh", "clh"}, {" ", " "}};
 
-int find_name(char *name) {
-    int i;
+int find_name(int account, char *passwd) {
+    int i, flag = 0;
+    FILE *fp = NULL;
+    struct userinfo tmp;
 
-    if(name == NULL) {
-        printf("in find_nmae, NULL pointer\n");
-        return -2;
-    }
-    for(i = 0; users[i].username[0] != ' '; i++)
-        if(!strcmp(users[i].username, name))
-            return i;
-    return -1;
+    if((fp = fopen("userinfo", "r")) == NULL)
+        err("fopen", __LINE__);
+
+    while((fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF) && (tmp.account != account))
+        ;
+    if(tmp.account != account)
+        return -1;
+    strcpy(passwd, tmp.passwd);
+
+    return 0;
 }
 
 void send_data(int conn_fd, char *string) {
@@ -25,16 +29,18 @@ void send_data(int conn_fd, char *string) {
 }
 
 void *service(void *arg) {
-    int ret, flag_recv, name_num;
-    char recv_buf[ BUFSIZE ];
+    int ret, n, account;
     int conn_fd = *(int *) arg;
     int choice;
+    int flag_recv = 0;
+    char recv_buf[ BUFSIZE ];
 
     do{
-        if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)  //接收choice
-            err("recv", __LINE__);
-        recv_buf[ret-1] = 0;
+        if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0){  //接收choice
 
+            err("recv", __LINE__);
+        }
+        recv_buf[ret-1] = 0;
         choice = atoi(recv_buf);
 
         if(send(conn_fd, "y", 2, 0) < 0)
@@ -42,32 +48,32 @@ void *service(void *arg) {
 
         switch(choice) {
             case 1: {     //登录
-                if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)
-                    err("recv", __LINE__);
-                recv_buf[ret-1] = 0;
+                char passwd[21];
+                while(1){
+                    if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)
+                        err("recv", __LINE__);
+                    recv_buf[ret-1] = 0;
 
-                if(flag_recv == USERNAME) {
-                    name_num = find_name(recv_buf);
-                    switch(name_num){
-                        case -1:
+                    if(flag_recv == USERNAME) {
+                        account = atoi(recv_buf);
+
+                        n = find_name(account, passwd);
+
+                        if(n == -1)
                             send_data(conn_fd, "n");
-                            break;
-                        case -2:
-                            exit(1);
-                        default:
+                        else {
                             send_data(conn_fd, "y\n");
                             flag_recv = PASSWORD;
+                        }
+                    } else if (flag_recv == PASSWORD) {
+                        if(!strcmp(passwd, recv_buf)) {
+                            send_data(conn_fd, "y\n");
+                            printf("%d login\n", account);
                             break;
+                        } else
+                            send_data(conn_fd, "n");
                     }
-                } else if (flag_recv == PASSWORD) {
-                    if(!strcmp(users[name_num].password, recv_buf)) {
-                        send_data(conn_fd, "y\n");
-                        printf("%s login\n", users[name_num].username);
-                        break;
-                    } else
-                        send_data(conn_fd, "n");
                 }
-                
             }
             break;
 
