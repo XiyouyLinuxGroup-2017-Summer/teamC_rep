@@ -27,12 +27,9 @@ int find_name(char *name) {
 }
 
 void send_data(int conn_fd, char *string) {
-    int ret;
     
-    if( (ret = send(conn_fd, string, strlen(string), 0) )< 0 )
+    if(send(conn_fd, string, strlen(string), 0) < 0 )
         err("send_data", __LINE__);
-    
-    printf("ret = %d\n", ret);
 }
 
 int main(void) {
@@ -95,19 +92,12 @@ int main(void) {
                 } else if (flag_recv == PASSWORD) {
                     if(!strcmp(users[name_num].password, recv_buf)) {
                         send_data(conn_fd, "y\n");
-                        
-
-                        int x ;
-                        x = send(conn_fd, "welcome !", 10,0);
-                        printf("x = %d\n", x);
-                        // send_data(conn_fd, "welcome to my tcp server\n");
-                         printf("%s login\n", users[name_num].username);
+                        printf("%s login\n", users[name_num].username);
                         break;
                     } else
                         send_data(conn_fd, "n");
                 }
             }
-            sleep(5);
             close(conn_fd);                       
             close(sock_fd);
 

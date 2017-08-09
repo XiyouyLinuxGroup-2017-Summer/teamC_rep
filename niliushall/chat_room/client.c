@@ -13,7 +13,6 @@ int get_userinfo(char *buf, int len) {
     while((buf[i++] = getchar()) != '\n' && i < len-1)
         ;
     buf[i-1] = 0;
-printf("+%s+\n", buf);
     
     return 0;
 }
@@ -80,21 +79,17 @@ int main(int argc, char **argv) {
 
     input_userinfo(conn_fd, "username");
     input_userinfo(conn_fd, "password");
-// sleep(1);
-    printf("aaaaa\n");
+
+    printf("Login success.\n");
     memset(recv_buf,0,sizeof(recv_buf));
     
-
-
     if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0) {
         printf("data is too long\n");
         exit(1);
     }
 
-    sleep(3);
     if(recv_buf != NULL)
         printf("%s\n", recv_buf);
-    printf("ret = %d\n", ret);
     for(i = 0; i < ret; i++)
         printf("%c", recv_buf[i]);
     printf("\n");
