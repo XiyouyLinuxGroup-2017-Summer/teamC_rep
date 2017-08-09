@@ -3,54 +3,11 @@
 #define INVALID_USERINFO 'n'
 #define VALID_USERINFO   'y'
 
-int get_userinfo(char *buf, int len) {
-    int i;
-
-    if(buf == NULL)
-        return -1;
-
-    i = 0;
-    while((buf[i++] = getchar()) != '\n' && i < len-1)
-        ;
-    buf[i-1] = 0;
-    
-    return 0;
-}
-
-void input_userinfo(int conn_fd, char *string) {
-    char recv_buf[ BUFSIZE ];
-    char input_buf[ NAMESIZE ] = {0};
-    int flag_userinfo = 0;
-
-    do {
-        printf("%s : ", string);
-        if(get_userinfo(input_buf, NAMESIZE) < 0)
-            err("error return from get_userinfo", __LINE__);
-        
-        if(send(conn_fd, input_buf, sizeof(input_buf), 0) < 0)
-            err("send", __LINE__);
-
-        /*读取套接字数据*/
-        if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-            err("recv", __LINE__);
-
-        if(recv_buf[0] == VALID_USERINFO) {
-            flag_userinfo = VALID_USERINFO;
-        } else {
-            printf("%s error, input again\n", string);
-            flag_userinfo = INVALID_USERINFO;
-        }
-    } while(flag_userinfo == INVALID_USERINFO);
-}
-
-void login(int conn_fd){
-    char recv_buf[ BUFSIZE ];
-
-    input_userinfo(conn_fd, "username");
-    input_userinfo(conn_fd, "password");
-
-    printf("Login success.\n");
-}
+/*函数声明*/
+int get_userinfo(char *buf, int len);
+void input_userinfo(int conn_fd, char *string);
+void menu_login(int conn_fd);
+void login(int conn_fd);
 
 int main(int argc, char **argv) {
     int conn_fd, serv_port;
@@ -86,8 +43,113 @@ int main(int argc, char **argv) {
     if(connect(conn_fd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
         err("connect", __LINE__);
     
-    login(conn_fd);
+    menu_login(conn_fd);
+
     close(conn_fd);
 
     return 0;
+}
+
+void menu_login(int conn_fd) {
+    int choice;
+
+    do{
+        CLEAR; //clear the screen
+
+        printf("----------------------------------------\n");
+        printf("---      Welcome to my chatroom      ---\n");
+        printf("----------------------------------------\n");
+        printf("---                                  ---\n");
+        printf("---         1. login                 ---\n");
+        printf("---         2. register              ---\n");
+        printf("---         0. exit                  ---\n");
+        printf("---                                  ---\n");
+        printf("----------------------------------------\n\n");
+        printf("Please input a number(0~2):\n");
+        
+        scanf("%d", &choice);
+        getchar();
+        fflush(stdin);
+
+        switch(choice) {
+            case 1: {
+                login(conn_fd);
+                /*chat menu*/
+                break;
+            }
+            case 2: {
+                register(conn_fd);
+                break;
+            }
+            default: {
+                printf("Input error. The number should be 0 ~ 2\n");
+                printf("Press any key to continue...\n");
+                getchar();
+                break;
+            }
+        }
+
+    } while(choice);
+}
+
+/*登陆函数*/
+void login(int conn_fd){
+    int i;
+    input_userinfo(conn_fd, "username");
+    input_userinfo(conn_fd, "password");
+
+    fprintf(stderr, "Login success. Please wait for a while.");
+    for(i = 0; i < 3; i++){
+        sleep(1);
+        fprintf(stderr, ".");
+    }
+}
+
+/*获取用户输入信息*/
+int get_userinfo(char *buf, int len) {
+    int i;
+
+    if(buf == NULL)
+        return -1;
+
+    i = 0;
+    while((buf[i++] = getchar()) != '\n' && i < len-1)
+        ;
+    buf[i-1] = 0;
+    printf("buf = %s\n", buf);
+    
+    return 0;
+}
+
+/*输入信息，提交到服务器*/
+void input_userinfo(int conn_fd, char *string) {
+    char recv_buf[ BUFSIZE ];
+    char input_buf[ NAMESIZE ] = {0};
+    int flag_userinfo = 0;
+
+    do {
+        printf("%s : ", string);
+        if(get_userinfo(input_buf, NAMESIZE) < 0)
+            err("error return from get_userinfo", __LINE__);
+        
+        if(send(conn_fd, input_buf, sizeof(input_buf), 0) < 0)
+            err("send", __LINE__);
+
+        /*读取套接字数据*/
+        if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+            err("recv", __LINE__);
+
+        if(recv_buf[0] == VALID_USERINFO) {
+            flag_userinfo = VALID_USERINFO;
+        } else {
+            printf("%s error, input again\n", string);
+            flag_userinfo = INVALID_USERINFO;
+        }
+    } while(flag_userinfo == INVALID_USERINFO);
+}
+
+
+/*注册函数*/
+void my_register( int conn_fd ) {
+    char recv_buf[ BUFSIZE ]; 
 }

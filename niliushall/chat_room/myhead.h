@@ -1,10 +1,3 @@
-/*************************************************************************
-	> File Name: myhead.h
-	> Author: 
-	> Mail: 
-	> Created Time: 2017年08月08日 星期二 15时28分48秒
- ************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -19,6 +12,8 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#define CLEAR system("clear")
 
 #define SERV_PORT 4507  //服务器端口号
 #define LISTEN_SIZE 12  //连接请求队列最大长度
@@ -49,6 +44,10 @@ typedef struct group {         // 记录群组信息
     char group_name[ NAMESIZE ];
 }group;
 
+typedef struct message {
+    
+}
+
 void err(const char *, int ); // 错误处理
 
 void err(const char *string, int line) {
@@ -62,3 +61,4 @@ void err(const char *string, int line) {
     char *p = ctime(&time);
     return p;
 }*/
+
