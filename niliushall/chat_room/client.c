@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
 
 void menu_login(int conn_fd) {
     int choice;
+    char recv_buf[ BUFSIZE];
 
     do{
         CLEAR; //clear the screen
@@ -73,7 +74,14 @@ void menu_login(int conn_fd) {
 
         switch(choice) {
             case 1: {
-                login(conn_fd);
+                if(send(conn_fd, "1", 2, 0) < 0)
+                    err("send", __LINE__);
+                if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+                    err("recv", __LINE__);
+                if(recv_buf[0] == 'y')
+                    login(conn_fd);
+                else
+                    printf("connect with server error\n");
                 /*chat menu*/
                 break;
             }
@@ -116,7 +124,6 @@ int get_userinfo(char *buf, int len) {
     while((buf[i++] = getchar()) != '\n' && i < len-1)
         ;
     buf[i-1] = 0;
-    printf("buf = %s\n", buf);
     
     return 0;
 }

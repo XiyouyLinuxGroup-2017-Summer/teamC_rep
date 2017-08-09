@@ -20,51 +20,28 @@ int find_name(char *name) {
 }
 
 void send_data(int conn_fd, char *string) {
-    
-    if(send(conn_fd, string, strlen(string), 0) < 0 )
-        err("send_data", __LINE__);
+    if(send(conn_fd, string, strlen(string), 0) < 0)
+    err("send", __LINE__);
 }
 
-int main(void) {
-    int fd;
-    int sock_fd, conn_fd;
-    int optval;
-    int flag_recv = USERNAME;
-    int ret, name_num;
-    pid_t pid;
-    socklen_t cli_len;
-    struct sockaddr_in cli_addr, serv_addr;
+void *service(void *arg) {
+    int ret, flag_recv, name_num;
     char recv_buf[ BUFSIZE ];
+    int conn_fd = *(int *) arg;
+    int choice;
 
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock_fd < 0)
-        err("socket", __LINE__);
+    do{
+        if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)  //接收choice
+            err("recv", __LINE__);
+        recv_buf[ret-1] = 0;
 
-    optval = 1;
-    if(setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&optval, sizeof(int)) < 0)
-        err("setsockopt", __LINE__);
+        choice = atoi(recv_buf);
 
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(SERV_PORT);
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        if(send(conn_fd, "y", 2, 0) < 0)
+            err("send", __LINE__);
 
-    if(bind(sock_fd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)) < 0)
-        err("bind", __LINE__);
-
-    if(listen(sock_fd, LISTEN_SIZE) < 0)
-        err("listen", __LINE__);
-
-    cli_len = sizeof(struct sockaddr_in);
-    while(1) {
-        conn_fd = accept(sock_fd, (struct sockaddr *)&cli_len, &cli_len);
-        if(conn_fd < 0)
-            err("accept", __LINE__);
-
-        printf("accept a new client, ip: %s\n", inet_ntoa(cli_addr.sin_addr));
-
-        if((pid = fork()) == 0) {
-            while(1) {
+        switch(choice) {
+            case 1: {     //登录
                 if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)
                     err("recv", __LINE__);
                 recv_buf[ret-1] = 0;
@@ -90,13 +67,57 @@ int main(void) {
                     } else
                         send_data(conn_fd, "n");
                 }
+                
             }
-            close(conn_fd);                       
-            close(sock_fd);
+            break;
 
-            exit(0);
-        } else {
-            close(conn_fd);
+            case 2: {
+
+            }
+            break;
+        }
+    } while(choice);
+}
+
+
+int main(void) {
+    int fd, ret;
+    int sock_fd, conn_fd;
+    int optval;
+    int flag_recv = USERNAME;
+    pthread_t tid;
+    socklen_t cli_len;
+    struct sockaddr_in cli_addr, serv_addr;
+    char recv_buf[5]; //接收choice
+
+    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock_fd < 0)
+        err("socket", __LINE__);
+
+    optval = 1;
+    if(setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&optval, sizeof(int)) < 0)
+        err("setsockopt", __LINE__);
+
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(SERV_PORT);
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if(bind(sock_fd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)) < 0)
+        err("bind", __LINE__);
+
+    if(listen(sock_fd, LISTENSIZE))
+
+    cli_len = sizeof(struct sockaddr_in);
+    while(1) {
+        conn_fd = accept(sock_fd, (struct sockaddr *)&cli_addr, &cli_len);
+        if(conn_fd < 0)
+            err("accept", __LINE__);
+
+        printf("accept a new client, ip: %s\n", inet_ntoa(cli_addr.sin_addr));
+        
+        if(pthread_create(&tid, NULL, service, (void *)&conn_fd) < 0) {
+            err("pthread_create", __LINE__);
         }
     }
 

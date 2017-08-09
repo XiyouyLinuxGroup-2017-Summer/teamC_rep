@@ -16,11 +16,11 @@
 #define CLEAR system("clear")
 
 #define SERV_PORT 4507  //服务器端口号
-#define LISTEN_SIZE 12  //连接请求队列最大长度
 #define GROUP_MEMBER 10 //群组最大用户数
 #define NAMESIZE  21    //昵称最大长度
 #define PASSWDSIZE 21   //密码最大长度
 #define BUFSIZE 512     //最大传输字节数
+#define LISTENSIZE 30
 
 #define USERNAME 0      //接收到用户名
 #define PASSWORD 1      //接收到密码
@@ -45,8 +45,10 @@ typedef struct group {         // 记录群组信息
 }group;
 
 typedef struct message {
-    
-}
+    char choice[5];
+    int conn_fd;
+}message;
+
 
 void err(const char *, int ); // 错误处理
 
@@ -62,3 +64,9 @@ void err(const char *string, int line) {
     return p;
 }*/
 
+userinfo * read_userinfo(userinfo *pHead) {
+    userinfo *pNew, *pEnd = pHead;
+
+    pNew = (userinfo *)malloc(sizeof(userinfo));
+    
+}
