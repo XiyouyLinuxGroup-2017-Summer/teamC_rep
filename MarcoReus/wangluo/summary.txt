@@ -1,39 +1,3 @@
-<<<<<<< HEAD
-TCP/IP协议：
-网络接口层:最下面的一层，多种逻辑链路和媒体访问协议，Internet层送来的数据分成帧，通过物理链路传送，或从网络上接受物理帧，抽取数据交给其上的Internet层
-Internet层:网络层负责在发送端和接受端之间建立虚拟路径。
-
-
-
-socket
-struct socketaddr{
-    unsigned short sa_family;   //地址类型
-    char sa_data[14];           //14字节协议地址
-};
-
-struct socketaddr_in{
-    unsigned short sin_family;   //地址类型
-    unsigned short int sin_port;  //端口号
-    struct in_addr sin_addr;     //ip地址
-    unsigned char sin_zero[8];    //填充字节，一般赋值为0
-};
-struct in_addr{
-    unsigned long s_addr;
-}
-
-#include<sys/types.h>
-#include<sys/socket.h>
-
-int socket(int domain,int types.h,int protocall);
-domain:协议簇
-AF_UNIX:
-AF_INET:
-AF_INET6:
-type:
-SOCKET_STREAM:
-SOCK_DGRAM:
-SOCK_RAW:
-=======
 linux网络编程实际就是套接字编程
 套接字的地址结构
 #include <linux/socket.h>
@@ -54,6 +18,7 @@ struct in_addr {
     unsigned long s_addr;
 };
 
+创建
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -69,5 +34,89 @@ SOCK_DGRAM:创建UDP数据报套接字
 SOCK_RAW:创建原始套接字
 protocol通常为0
 
->>>>>>> my_own
+连接
+#include <sys/types.h>
+#include <sys/socket.h>
+int connect(int sockfd,const struct socketaddr *serv_addr,socketlen_t addrlen);
+sockfd 由socket()创建的套接字。
+
+绑定套接字
+#include <sys/types.h>
+#include <sys/socket.h>
+int bind(int socket,struct socketaddr *my_addr,socketlen_t addrlen);
+my_addr指定sockfd绑定本地地址
+
+
+监听套接字
+#include <sys/socket.h>
+int listen(int s,int backlog);
+
+接受连接
+#include <sys/types.h>
+#include <sys/socket.h>
+int accept(int s,struct sockaddr *addr,socklen_t *addrlen);
+s是函数socket()创建，经bind绑定到本地某端口，通过函数socket转化而来的监听套接字
+addr用来保存发起连接请求的主机的地址和端口
+addrlen时addr所指向结构体的大小
+
+TCP套接字的数据传输
+1.发送数据
+#include <sys/types.h>
+#include <sys/socket.h>
+ssize_t send(int s,const void *msg,size_t len,int flags);
+s已经连接好的套接字描述符
+msg待发送数据的缓冲区
+len待发送数据的长度
+flags一般设置为0
+MSG_OOB:在指定的套接字上发送带外数据，该类型的套接字带外数据(如SOCK_STREAM)
+MSG_DONTROUTE:最直接的路径发送数据，忽略下层协议的路由设置
+2.接受数据
+#include <sys/types.h>
+#include <sys/socket.h>
+ssize_t recv(int s,void *buf,size_t len,int flags);
+s面向连接的套接字
+buf所指定的缓冲区
+len缓冲区的长度
+flags一般设置为0
+MSG_OOB:请求接受带外数据
+MSG_PEEK:只看出数据而不读出
+MSG_WAITWALL:只在缓冲区满时才返回
+接受到数据就返回
+
+UDP套接字的数据传输
+1.发送信号
+#include <sys/types.h>
+#include <sys/socket.h>
+ssize_t sendto(int s,const void *msg,size_t len,int flags,
+               const struct sockaddr *to,socketlen_t tolen);
+s连接好的套接字描述符
+msg待发出数据的缓冲区
+len指定了待发送数据的长度
+flags同send();
+to目的地址
+tolen地址长度
+
+接收信号
+#include <sys/types.h>
+#include <sys/socket.h>
+ssize_t readfrom(int s,void *buf,size_t len,int flags,
+                struct sockaddr *from,socklen_t *fromlen);
+buf接受缓冲区
+len缓冲区的大小
+flags同revc();
+form保存数据的原地址
+formlen是form的长度
+
+关闭套接字
+#include <unistd.h>
+int close(int fd);
+
+#include <unistd.h>
+int shutdown(int s,int how);
+SHUT_RD:读通道关闭，接收缓冲区清空，发送数据继续
+SHUT_WR:写通道关闭，发送缓冲区清空，接受数据继续
+SHUT_RDWR:读写通道都关闭
+
+
+
 
