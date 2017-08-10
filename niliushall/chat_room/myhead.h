@@ -17,6 +17,12 @@
 
 #define USER_INFO "/home/wangliang/chatroom_info/userinfo"
 #define DIR_USER "/home/wangliang/chatroom_info/"
+
+#define RED    "\n\033[1;31m"
+#define GREEN  "\n\033[1;32m"
+#define BLUE   "\n\033[1;34m"
+#define END    "\n\033[0m"
+
 #define SERV_PORT 4507  //服务器端口号
 #define GROUP_MEMBER 10 //群组最大用户数
 #define NAMESIZE  21    //昵称最大长度
@@ -47,13 +53,20 @@ struct group {         // 记录群组信息
 };
 
 struct message {
-    char choice[5];
-    int conn_fd;
+    int from;
+    int to;
+    char name[ NAMESIZE ];
+    char buf[ BUFSIZE ];
+    char time[30];
 };
 
 
+/*函数声明*/
 void err(const char *, int ); // 错误处理
 char *my_time();
+void login(int );
+void my_register(int );
+
 
 void err(const char *string, int line) {
     perror(string);

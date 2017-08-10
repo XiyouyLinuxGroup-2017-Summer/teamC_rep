@@ -1,5 +1,8 @@
 #include "myhead.h"
 
+struct online_user *pHead = NULL;
+struct online_user *pEnd, *p;
+
 struct userinfo1 {
     char username[32];
     char password[32];
@@ -38,8 +41,8 @@ void *service(void *arg) {
     struct userinfo tmp;
     FILE *fp = NULL;
 
-    struct online_user *pHead = (struct online_user *)malloc(sizeof(struct online_user));
-    struct online_user *pEnd = pHead, *p;
+    pHead = (struct online_user *)malloc(sizeof(struct online_user));
+    pEnd = pHead;
 
     do{
         if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0){  //接收choice
@@ -54,6 +57,7 @@ void *service(void *arg) {
             err("send", __LINE__);
 
         switch(choice) {
+
             case 1: {     //登录
                 char passwd[21];
                 while(1){
@@ -91,6 +95,7 @@ void *service(void *arg) {
                 }
             }
             break;
+
 
             case 2: {   //注册
                 while(1) {
@@ -158,6 +163,18 @@ void *service(void *arg) {
                 printf("%d register success, %s\n", tmp.account, my_time());
             }
             break;
+
+
+            case 3: {
+                if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+                    err("recv", __LINE__);
+                memcpy(&tmp, recv_buf, sizeof(recv_buf));
+
+                ////////////////////
+
+            }
+            break;
+
 
             case 0: {   //退出，离线状态
                 p = pHead -> next;
