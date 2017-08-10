@@ -10,7 +10,7 @@ int find_name(int account, char *passwd) {
     FILE *fp = NULL;
     struct userinfo tmp;
 
-    if((fp = fopen("userinfo", "r")) == NULL)
+    if((fp = fopen(USER_INFO, "r")) == NULL)
         err("fopen", __LINE__);
 
     while((fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF) && (tmp.account != account))
@@ -53,7 +53,6 @@ void *service(void *arg) {
         if(send(conn_fd, "y", 2, 0) < 0)
             err("send", __LINE__);
 
-printf("choice = %d\n", choice);
         switch(choice) {
             case 1: {     //登录
                 char passwd[21];
@@ -84,7 +83,7 @@ printf("choice = %d\n", choice);
                             pNew -> user_fd = conn_fd;
                             pNew -> account = account;
                             pEnd -> next = pNew;
-                            pNew -> next = NULL;
+                            pNew -> next = NULL;    
                             break;
                         } else
                             send_data(conn_fd, "n");
@@ -100,30 +99,51 @@ printf("choice = %d\n", choice);
                     if(!account)
                         break;
 
-                    if((fp = fopen("userinfo", "at+")) == NULL)
+                    if((fp = fopen(USER_INFO, "r")) == NULL)
                         err("fopen", __LINE__);
                     flag = 0;
                     while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
                         if(account == tmp.account)
                             flag = 1;
 
+                    fclose(fp);
+
                     if(flag)
                         send(conn_fd, "n", 2, 0);
-                    else
-                        send(conn_fd, "y", 2, 0);
-
-                    if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-                        err("recv", __LINE__);
                     else{
-                        memcpy(&tmp, recv_buf, sizeof(recv_buf));
-                        fprintf(fp, "%s %d %s", tmp.name, tmp.account, tmp.passwd);
-                        fclose(fp);
-                        if(send(conn_fd, "y", 2, 0) < 0)
-                            err("conn_fd", __LINE__);
-                        printf("%d register success\n", tmp.account);
+                        send(conn_fd, "y", 2, 0);
                         break;
                     }
                 }
+
+                while(1) {
+                    if((fp = fopen(USER_INFO, "ab+")) == NULL)
+                        err("fopen", __LINE__);
+
+                    if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+                        err("recv", __LINE__);
+                    memcpy(&tmp, recv_buf, sizeof(recv_buf));
+                    fprintf(fp, "%s %d %s", tmp.name, tmp.account, tmp.passwd);
+
+                    fclose(fp);
+
+                    if(send(conn_fd, "y", 2, 0) < 0) {
+                        err("conn_fd", __LINE__);
+                    } else {
+                        break;
+                    }
+                }
+
+                sprintf(recv_buf, "%d", tmp.account);
+
+                if(chdir("/home/wangliang/chatroom_info") < 0)
+                    err("chdir", __LINE__);
+                if(mkdir(recv_buf, 0777) < 0)
+                    err("mkdir", __LINE__);
+                chdir(recv_buf);
+                mkdir("off-line", 0777);
+
+                printf("%d register success\n", tmp.account);
             }
             break;
 

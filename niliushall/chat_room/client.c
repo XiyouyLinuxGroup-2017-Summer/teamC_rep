@@ -87,7 +87,7 @@ void menu_login(int conn_fd) {
                 if(recv_buf[0] == 'y')
                     login(conn_fd);
                 else
-                    printf("connect with server error\n");
+                    printf("connect with server error\n\n");
                 /*chat menu*/
 
                 break;
@@ -103,7 +103,7 @@ void menu_login(int conn_fd) {
                 if(recv_buf[0] == 'y')
                     my_register(conn_fd);
                 else
-                    printf("connect with server error\n");
+                    printf("connect with server error\n\n");
                 break;
             }
 
@@ -114,7 +114,7 @@ void menu_login(int conn_fd) {
 
             default: {
                 printf("Input error. The number should be 0 ~ 2\n");
-                printf("Press any key to continue...\n");
+                printf("Press any key to continue...\n\n");
                 getchar();
                 break;
             }
@@ -173,7 +173,7 @@ void input_userinfo(int conn_fd, char *string) {
         if(recv_buf[0] == VALID_USERINFO) {
             flag_userinfo = VALID_USERINFO;
         } else {
-            printf("%s error, input again\n", string);
+            printf("%s error, input again\n\n", string);
             flag_userinfo = INVALID_USERINFO;
         }
     } while(flag_userinfo == INVALID_USERINFO);
@@ -199,14 +199,14 @@ void my_register( int conn_fd ) {
 
         scanf("%s", recv_buf);
         if(recv_buf[0] == '0') {
-            printf("The first number should not be 0\n");
+            printf("The first number should not be 0\n\n");
             continue;
         }
 
         i = 0;
         while(recv_buf[i++]) {
             if(!(recv_buf[i-1] >= '0' && recv_buf[i-1] <= '9')) {
-                printf("The account format is incorrect\n");
+                printf("The account format is incorrect\n\n");
                 flag_a = 1;
                 break;
             }
@@ -267,7 +267,7 @@ void my_register( int conn_fd ) {
             err("recv", __LINE__);
         if(recv_buf[0] == 'y'){
             printf("Congratulations! Register success!\n");
-            getchar();
+            sleep(1);
             fflush(stdin);
             break;
         }

@@ -15,6 +15,7 @@
 
 #define CLEAR system("clear")
 
+#define USER_INFO "/home/wangliang/chatroom_info/userinfo"
 #define SERV_PORT 4507  //服务器端口号
 #define GROUP_MEMBER 10 //群组最大用户数
 #define NAMESIZE  21    //昵称最大长度
