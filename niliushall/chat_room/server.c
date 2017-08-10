@@ -19,6 +19,8 @@ int find_name(int account, char *passwd) {
         return -1;
     strcpy(passwd, tmp.passwd);
 
+    fclose(fp);
+
     return 0;
 }
 
@@ -33,6 +35,7 @@ void *service(void *arg) {
     int choice;
     int flag = 0;
     char recv_buf[ BUFSIZE ];
+    struct userinfo tmp;
     FILE *fp = NULL;
 
     struct online_user *pHead = (struct online_user *)malloc(sizeof(struct online_user));
@@ -43,12 +46,12 @@ void *service(void *arg) {
 
             err("recv", __LINE__);
         }
+
         recv_buf[ret-1] = 0;
         choice = atoi(recv_buf);
 
         if(send(conn_fd, "y", 2, 0) < 0)
             err("send", __LINE__);
-
         switch(choice) {
             case 1: {     //登录
                 char passwd[21];
@@ -89,13 +92,13 @@ void *service(void *arg) {
 
             case 2: {   //注册
                 while(1) {
-                    if((ret = recv(conn_fd, account, sizeof(account), 0)) < 0)
+                    if((ret = recv(conn_fd, &account, sizeof(account), 0)) < 0)
                         err("recv", __LINE__);
+                    if(!account)
+                        break;
 
-                    if(!count)
-                        return ;
-
-                    fp = fopen("userinfo", "at+");
+                    if((fp = fopen("userinfo", "at+")) == NULL)
+                        err("fopen", __LINE__);
                     flag = 0;
                     while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
                         if(account == tmp.account)
@@ -105,6 +108,18 @@ void *service(void *arg) {
                         send(conn_fd, "n", 2, 0);
                     else
                         send(conn_fd, "y", 2, 0);
+
+                    if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+                        err("recv", __LINE__);
+                    else{
+                        memcpy(&tmp, recv_buf, sizeof(recv_buf));
+                        fprintf(fp, "%s %d %s\n", tmp.name, tmp.account, tmp.passwd);
+                        fclose(fp);
+                        if(send(conn_fd, "y", 2, 0) < 0)
+                            err("conn_fd", __LINE__);
+                        printf("%d register success\n", tmp.account);
+                        break;
+                    }
                 }
             }
             break;
