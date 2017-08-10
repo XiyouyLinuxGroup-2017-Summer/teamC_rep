@@ -16,6 +16,7 @@
 #define CLEAR system("clear")
 
 #define USER_INFO "/home/wangliang/chatroom_info/userinfo"
+#define DIR_USER "/home/wangliang/chatroom_info/"
 #define SERV_PORT 4507  //服务器端口号
 #define GROUP_MEMBER 10 //群组最大用户数
 #define NAMESIZE  21    //昵称最大长度
@@ -52,6 +53,7 @@ struct message {
 
 
 void err(const char *, int ); // 错误处理
+char *my_time();
 
 void err(const char *string, int line) {
     perror(string);
@@ -59,8 +61,10 @@ void err(const char *string, int line) {
     exit(1);
 }
 
-/*char *my_time() {
-    time(&time);
-    char *p = ctime(&time);
+char *my_time() {
+    time_t nowtime;
+    nowtime = time(NULL);
+    char *p = ctime(&nowtime);
+
     return p;
-}*/
+}

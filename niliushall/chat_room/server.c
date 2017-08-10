@@ -75,7 +75,7 @@ void *service(void *arg) {
                     } else if (flag == PASSWORD) {
                         if(!strcmp(passwd, recv_buf)) {
                             send_data(conn_fd, "y\n");
-                            printf("%d login\n", account);
+                            printf("%d login, %s\n", account, my_time());
 
                             /*添加为在线状态*/
                             struct online_user *pNew;
@@ -123,7 +123,7 @@ void *service(void *arg) {
                     if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
                         err("recv", __LINE__);
                     memcpy(&tmp, recv_buf, sizeof(recv_buf));
-                    fprintf(fp, "%s %d %s", tmp.name, tmp.account, tmp.passwd);
+                    fprintf(fp, "\n%s %d %s", tmp.name, tmp.account, tmp.passwd);
 
                     fclose(fp);
 
@@ -136,14 +136,26 @@ void *service(void *arg) {
 
                 sprintf(recv_buf, "%d", tmp.account);
 
-                if(chdir("/home/wangliang/chatroom_info") < 0)
+                if(chdir(DIR_USER) < 0)
                     err("chdir", __LINE__);
                 if(mkdir(recv_buf, 0777) < 0)
                     err("mkdir", __LINE__);
                 chdir(recv_buf);
-                mkdir("off-line", 0777);
+                
+                if(open("friends", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
+                    err("open", __LINE__);
+                }
+                if(open("groups", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
+                    err("open", __LINE__);
+                }
+                if(open("off-online", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
+                    err("open", __LINE__);
+                }
+                if(open("chat_log", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
+                    err("open", __LINE__);
+                }
 
-                printf("%d register success\n", tmp.account);
+                printf("%d register success, %s\n", tmp.account, my_time());
             }
             break;
 
