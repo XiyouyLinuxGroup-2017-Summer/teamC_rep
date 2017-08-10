@@ -182,18 +182,43 @@ void input_userinfo(int conn_fd, char *string) {
 
 /*注册函数*/
 void my_register( int conn_fd ) {
+    int i;
     char recv_buf[ BUFSIZE ];
-    int account, flag = 0;
-    char tpasswd[ PASSWDSIZE ];
+    int account = 0, flag = 0, flag_a;
+    // char tpasswd[ PASSWDSIZE ];
+    char *tpasswd, *passwd;
     struct userinfo info;
+
+    memset(&info, 0, sizeof(info));
 
     /*帐号*/
     while(1) {
-        if(!flag){
-            printf("Please input your account number:\n(no mroe than 6 digits , input 0 to exit)\n");
-            flag = 1;
+        flag_a = 0;
+
+        printf("Please input your account number:\n(no mroe than 6 digits , input 0 to exit)\n");
+
+        scanf("%s", recv_buf);
+        if(recv_buf[0] == '0') {
+            printf("The first number should not be 0\n");
+            continue;
         }
-        scanf("%d", &info.account);
+
+        i = 0;
+        while(recv_buf[i++]) {
+            if(!(recv_buf[i-1] >= '0' && recv_buf[i-1] <= '9')) {
+                printf("The account format is incorrect\n");
+                flag_a = 1;
+                break;
+            }
+        }
+
+        if(!flag_a) {
+            recv_buf[i-1] = 0;
+            info.account = atoi(recv_buf);
+        } else {
+            continue;
+        }
+
         fflush(stdin);
 
         if(!info.account)
@@ -219,21 +244,23 @@ void my_register( int conn_fd ) {
     /*密码*/
     flag = 0;
     while(1) {
-        // char *tpasswd;
-        // ch = getpass("Please input the password:\n");
+        
         if(!flag){
-            printf("Please input password:\n");
+            passwd = getpass("Please input password:(-1 to exit)\n");
+            flag = 1;
+        } else {
+            passwd = getpass("The password is inconsistent, input again:\n");
         }
 
-        scanf("%s", info.passwd);
-        printf("Please input password again:\n");
-        scanf("%s", tpasswd);
+        if(!strcmp(passwd, "-1"))
+            return ;
 
-        if(!strcmp(info.passwd, tpasswd)){
+        tpasswd = getpass("Please input password again:\n");
+
+        if(!strcmp(passwd, tpasswd)){
+            memcpy(info.passwd, passwd, sizeof(passwd));
             if(send(conn_fd, (char *)&info, sizeof(info), 0) < 0)
                 err("send", __LINE__);
-        } else {
-            printf("The password is inconsistent, input again:\n");
         }
 
         if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
@@ -244,7 +271,5 @@ void my_register( int conn_fd ) {
             fflush(stdin);
             break;
         }
-        else
-            printf("register error", __LINE__);
     }
 }

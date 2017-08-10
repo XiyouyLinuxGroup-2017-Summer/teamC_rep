@@ -30,7 +30,7 @@ void send_data(int conn_fd, char *string) {
 }
 
 void *service(void *arg) {
-    int ret, n, account;
+    int ret, n, account = 0;
     int conn_fd = *(int *) arg;
     int choice;
     int flag = 0;
@@ -52,6 +52,8 @@ void *service(void *arg) {
 
         if(send(conn_fd, "y", 2, 0) < 0)
             err("send", __LINE__);
+
+printf("choice = %d\n", choice);
         switch(choice) {
             case 1: {     //登录
                 char passwd[21];
@@ -82,6 +84,7 @@ void *service(void *arg) {
                             pNew -> user_fd = conn_fd;
                             pNew -> account = account;
                             pEnd -> next = pNew;
+                            pNew -> next = NULL;
                             break;
                         } else
                             send_data(conn_fd, "n");
@@ -113,7 +116,7 @@ void *service(void *arg) {
                         err("recv", __LINE__);
                     else{
                         memcpy(&tmp, recv_buf, sizeof(recv_buf));
-                        fprintf(fp, "%s %d %s\n", tmp.name, tmp.account, tmp.passwd);
+                        fprintf(fp, "%s %d %s", tmp.name, tmp.account, tmp.passwd);
                         fclose(fp);
                         if(send(conn_fd, "y", 2, 0) < 0)
                             err("conn_fd", __LINE__);
@@ -126,11 +129,15 @@ void *service(void *arg) {
 
             case 0: {   //退出，离线状态
                 p = pHead -> next;
-                while(p -> account != account) {
-                    pEnd = p;
+                while(p != NULL) {
+                    if(p -> account == account) {
+                        pEnd -> next = p -> next;
+                        break;
+                    }
+                    pEnd -> next = p;
                     p = p -> next;
                 }
-                pEnd -> next = p -> next;
+                
             }
         }
     } while(choice);
