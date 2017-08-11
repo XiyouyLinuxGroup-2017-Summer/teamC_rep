@@ -1,4 +1,4 @@
-#include "myhead.h"
+/*#include "myhead.h"
 
 void menu_login(int conn_fd) {
     int choice;
@@ -6,7 +6,7 @@ void menu_login(int conn_fd) {
 
     do{
         CLEAR; //clear the screen
-
+        printf(GREEN);
         printf("----------------------------------------\n");
         printf("---      Welcome to my chatroom      ---\n");
         printf("----------------------------------------\n");
@@ -17,6 +17,7 @@ void menu_login(int conn_fd) {
         printf("---                                  ---\n");
         printf("----------------------------------------\n\n");
         printf("Please input a number(0~2):\n");
+        printf(END);
         
         scanf("%d", &choice);
         getchar();
@@ -80,6 +81,7 @@ void menu_chat(int conn_fd) {
 
     do {
         CLEAR;
+        printf(GREEN);
         printf("------------------------------------------------\n");
         printf("---          Welcome to my chatroom          ---\n");
         printf("------------------------------------------------\n");
@@ -100,6 +102,7 @@ void menu_chat(int conn_fd) {
         printf("---                                          ---\n");
         printf("------------------------------------------------\n\n");
         printf("Please input a number(0 ~ 12):\n");
+        printf(END);
 
         scanf("%d", &choice);
         getchar();
@@ -149,3 +152,4 @@ void menu_chat(int conn_fd) {
         }
     } while(choice);
 }
+*/
