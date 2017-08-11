@@ -68,6 +68,9 @@ void do_recv (struct message info) {
     
     if(n == 1) {  //私聊
         printf(GREEN"%s  %s"END, info.name_from, info.time);
+
+
+        /////////////////
     }
 }
 
@@ -298,7 +301,7 @@ void menu_login(int conn_fd) {
             case 0:    //退出并修改在线状态
                 if(send(conn_fd, "0", 2, 0) < 0)
                     err("send", __LINE__);
-                exit(0);
+                pthread_exit(NULL);
 
             default: {
                 printf(RED"Input error. The number should be 0 ~ 2\n"END);
@@ -355,6 +358,11 @@ void menu_chat(int conn_fd) {
         switch(choice) {
             
             case 1: {  //私聊
+
+                info.n = 1;
+                fgets(info.buf, sizeof(info.buf), stdin);                
+
+                ////////////////////
             }
         }
     } while(choice);

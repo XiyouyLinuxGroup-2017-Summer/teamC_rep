@@ -46,8 +46,9 @@ void *service(void *arg) {
     int ret, n, account = 0;
     int conn_fd = *(int *) arg, to_fd;
     int choice;
-    int flag = 0;
+    int flag = 0, flag_online = 0;;
     char recv_buf[ BUFSIZE ];
+    char filename[256];
     struct userinfo tmp;
     struct message info;
     FILE *fp = NULL;
@@ -267,9 +268,15 @@ void *service(void *arg) {
 
     /*执行客户端指令*/
     while(1) {
-        if(recv(conn_fd, &info, sizeof(info), 0) < 0)
+        int ret = 0;  //存储recv返回值
+
+        if((ret = recv(conn_fd, &info, sizeof(info), 0)) < 0)
             err("recv", __LINE__);
+        if(!ret)   //返回值为0代表客户端退出
+            pthread_exit(NULL);
+        
         n = info.n;
+        flag_online = 0;  //标记是否在线
 
         switch(n)
         {
@@ -280,14 +287,30 @@ void *service(void *arg) {
                 while(p != NULL) {
                     if(p -> account == info.account_to) {
                         info.sock_to = p -> user_fd;
-                        flag = 1;
+                        flag_online = 1;  //在线
                         break;
                     }
                 }
                 pthread_mutex_unlock(&mutex);
+            
 
-                if(send(info.sock_to, &info, sizeof(info), 0) < 0)
-                     err("send", __LINE__);
+                if(flag_online) {  //在线
+                    if(send(info.sock_to, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else {   //离线状态
+                    sprintf(recv_buf, "%d", info.account_to);  //将account转换为字符串
+                    strcpy(filename, DIR_USER);
+                    strcat(filename, recv_buf);
+                    chdir(filename);
+
+                    /*写入离线文件*/
+                    fp = fopen(recv_buf, "at+");
+                    fprintf(fp, "%d %s\n%s\n%s", info.account_from, info.name_from, info.time, info.buf);
+                    fclose(fp);
+                }
+
+
+                 ///////////////
             }
         }
     }
