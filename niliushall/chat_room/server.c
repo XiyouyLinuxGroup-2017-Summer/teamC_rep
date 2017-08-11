@@ -101,18 +101,12 @@ void *service(void *arg) {
                         pNew -> user_fd = conn_fd;
                         pNew -> account = account;
                         pEnd -> next = pNew;
+                        pEnd = pNew;
                         pNew -> next = NULL;    
-                        
-
-    p = pHead -> next;
-                        while(p!=NULL) {
-                            printf("online : %d\n", p->account);
-
+                      
                         break;
-                        }
-
-
-                    } else
+                    }
+                    else
                         send_data(conn_fd, "n");
                 }
             }
