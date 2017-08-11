@@ -22,7 +22,7 @@ typedef long long ll;
 
 list<char> link;
 
-int main() {
+int main(int argc,char *argv[]) {
 	ios_base::sync_with_stdio(false);
 	char s[100001];
 	
