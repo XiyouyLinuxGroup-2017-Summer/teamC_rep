@@ -10,8 +10,13 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    
+    int a[10];
+	int b[10];
+	int c[10];
 
+	for(int i = 0;i < 1000005;i++) {
+		
+	}
     return 0;
 }
 
