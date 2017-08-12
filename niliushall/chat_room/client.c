@@ -82,7 +82,7 @@ void do_recv (struct message info) {
 
 
         case 3: {  //输出聊天记录
-            printf(GREEN "%s(%d)  %s %s" END, info.name_from, info.account_from, info.time, info.buf);
+            printf(GREEN "%s(%d)  %s %s\n" END, info.name_from, info.account_from, info.time, info.buf);
         }
         break;
 
@@ -90,8 +90,9 @@ void do_recv (struct message info) {
         case 4: {  //输出在线状态
             printf(GREEN "friends online:\n" END);
             for(int i = 0; i < info.num; i++)
-                printf(GREEN "%d\n" END, info.state[i]);
+                printf(GREEN "%d\n" END, info.state[i][0]);
         }
+        break;
     }
 }
 
@@ -108,7 +109,7 @@ void *recv_thread(void *arg) {
             printf(RED"server exit."END);
             pthread_exit(NULL);
         }
-
+printf("n = %d\n", info_recv.n);
         do_recv(info_recv);
     }
 }
@@ -403,8 +404,10 @@ void menu_chat(int conn_fd) {
             break;
 
 
-            case 2: {  //
-                
+            case 2: {  //群聊
+                printf(GREEN "Input group account: " END);
+
+                /////////////////////
             }
             break;
 
@@ -417,6 +420,8 @@ void menu_chat(int conn_fd) {
                 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
+                getchar();
+                getchar();
 
             }
             break;
@@ -424,64 +429,28 @@ void menu_chat(int conn_fd) {
 
             case 4: {//在线状态
                 info.n = 4;
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
+                getchar();
             }
             break;
 
-            
+
+            case 5: {  //添加好友
+                info.n = 5;
+
+                printf(GREEN "Input account: " END);
+                scanf("%d", &info.account_to);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("sned", __LINE__);
+            }
+            break;
+
+
+
         }
     } while(choice);
 }
-        //         if(send(conn_fd, "3", 2, 0) < 0)
-        //             err("send", __LINE__);
-
-        //         if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-        //             err("recv", __LINE__);
-
-        //         if(recv_buf[0] == 'y') {
-        //             CLEAR;
-        //         } else {
-        //             printf(RED"connect to server error\n"END);
-        //             break;
-        //         }
-
-
-        //         printf(GREEN"-1 to display friends state, or input friend's account:\n"END);
-        //         scanf("%d", &info.from);
-
-        //         /*if(info.from == -1) {
-        //             break;
-        //         }*/
-
-        //         if(send(conn_fd, &info, sizeof(info), 0) < 0)
-        //             err("send", __LINE__);
-
-        //         if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-        //             err("recv", __LINE__);
-
-        //         if(recv_buf[0] != 'y') {
-        //             printf(RED"connect to server error\n"END);
-        //             break;
-        //         }
-
-        //         while(1) {
-        //             printf(BLUE"me: %s"END, my_time());
-        //             fgets(recv_buf, sizeof(recv_buf), stdin);
-
-        //             if(!strcmp(recv_buf, "exit")) {  //输入exit退出聊天
-        //                 printf("GREEN ");
-        //             }
-
-
-        //             if(send(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-        //                 err("send", __LINE__);
-
-        //             if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-        //                 err("recv", __LINE__);
-
-        //             if(recv_buf[0] != 'y') {
-        //                 printf(RED"send message failed.\n"END);
-        //             }
-        //         }
-        //     }
-        // }
-

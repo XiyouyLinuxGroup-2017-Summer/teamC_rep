@@ -272,17 +272,18 @@ void *service(void *arg) {
         fclose(fp);
 
 
-    /*写入时间*/
-    strcpy(info.time, my_time());
+        /*写入时间*/
+        strcpy(info.time, my_time());
         
         n = info.n;
+        flag_online = 0;  //标记是否在线
 
         switch(n)
         {
             case 1: {  //私聊
                 char filename_t[32];
 
-                /*获取接受者信息*/ 
+                /*获取接收者信息*/ 
                 fp = fopen(USER_INFO, "r");
                 while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
                     if(tmp.account == info.account_to) {
@@ -291,8 +292,6 @@ void *service(void *arg) {
                     }
                 fclose(fp);
                 
-                flag_online = 0;  //标记是否在线
-
                 pthread_mutex_lock(&mutex);
                 p = pHead -> next;
                 while(p != NULL) {
@@ -336,13 +335,13 @@ void *service(void *arg) {
                 strcat(filename, "/chat_log/");
                 chdir(filename);
                 fp = fopen(recv_buf, "at+");
-                fprintf(fp, "%d  %s  %s%s", info.account_from, info.name_from, info.time, info.buf);
+                fprintf(fp, "me :  %s%s", info.time, info.buf);
                 fclose(fp);
             }
             break;
 
 
-            case 2: {
+            case 2: {  //群聊
 
             }
             break;
@@ -355,29 +354,73 @@ void *service(void *arg) {
                 sprintf(recv_buf, "%d", info.account_to);
                 strcat(filename, recv_buf);
                 fp = fopen(filename, "r");
-                while(fscanf(fp, "%d%s%s%s", &info.account_from, info.name_from, info.time, info.buf))
-                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
-                        err("send",__LINE__);
+                while(fscanf(fp, "%d%s%s%s", &info.account_from, info.name_from, info.time, info.buf) != EOF)
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0){
+                        printf("send to %d error,   line: %d\n", conn_fd, __LINE__);
+                    }
                 fclose(fp);
             }
             break;
 
 
-            case 4: {
+            case 4: {  //好友在线状态
                 int i = 0;
                 p = pHead -> next;
                 while(p != NULL) {
-                    info.state[i++] = p -> account;
+                    info.state[i++][0] = p -> account;
                     p = p -> next;
                 }
                 info.num = i;
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
-                err("send", __LINE__);
+                    err("send", __LINE__);
             }
             break;
 
 
+            case 5: {  //添加好友
+                char filename_t[32];
+
+                /*获取接收者信息*/ 
+                fp = fopen(USER_INFO, "r");
+                while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+                    if(tmp.account == info.account_to) {
+                        strcpy(info.name_to, tmp.name);
+                        break;
+                    }
+                fclose(fp);
+                
+                pthread_mutex_lock(&mutex);
+                p = pHead -> next;
+                while(p != NULL) {
+                    if(p -> account == info.account_to) {
+                        info.sock_to = p -> user_fd;
+                        flag_online = 1;  //在线
+                        break;
+                    }
+                    p = p -> next;
+                }
+
+                sprintf(recv_buf, "%d", info.account_to);  //将account转换为字符串, 接收者文件名
+                sprintf(filename_t, "%d", info.account_from);  //发送者文件名
+                strcpy(filename, DIR_USER);
+                strcat(filename, recv_buf);
+                chdir(filename);     
+
+                if(flag_online) {  //在线
+                    if(send(info.sock_to, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else {   //离线状态
+
+                    /*写入离线文件*/
+                    fp = fopen("off-online", "at+");
+                    fprintf(fp, "%d %s\n%s%s", info.account_from, info.name_from, info.time, info.buf);
+                    fclose(fp);
+                }
+                pthread_mutex_unlock(&mutex);
+
+            }
+            break;
         }
     }
 }
