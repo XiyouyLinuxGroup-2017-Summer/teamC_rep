@@ -71,10 +71,27 @@ void do_recv (struct message info) {
     switch(n) {
         case 1: {  //私聊
             printf(BLUE"%s  %s"END, info.name_from, info.time);
-            printf(BLUE"%s"END, info.buf);
+            printf(BLUE"%s\n"END, info.buf);
         }
 
-        /////////////////
+
+        case 2: {
+
+        }
+        break;
+
+
+        case 3: {  //输出聊天记录
+            printf(GREEN "%s(%d)  %s %s" END, info.name_from, info.account_from, info.time, info.buf);
+        }
+        break;
+
+
+        case 4: {  //输出在线状态
+            printf(GREEN "friends online:\n" END);
+            for(int i = 0; i < info.num; i++)
+                printf(GREEN "%d\n" END, info.state[i]);
+        }
     }
 }
 
@@ -102,8 +119,8 @@ void login(int conn_fd){
     input_userinfo(conn_fd, "account");
     input_userinfo(conn_fd, "password");
 
-    fprintf(stderr, "Login success. Please wait for a while.");
-    for(i = 0; i < 3; i++){
+    fprintf(stderr, GREEN"Login success. Please wait for a while."END);
+    for(i = 0; i < 2; i++){
         sleep(1);
         fprintf(stderr, ".");
     }
@@ -115,16 +132,12 @@ int get_userinfo(char *buf, int len, char *string) {
 
     if(buf == NULL)
         return -1;
-
     i = 0;
     while((buf[i++] = getchar()) != '\n' && i < len-1)
         ;
     buf[i-1] = 0;
 
-    if(!strcmp(string, "account"))
-        taccount = atoi(buf);
-
-    // fflush(stdin);
+    taccount = atoi(buf);
     
     return 0;
 }
@@ -132,16 +145,19 @@ int get_userinfo(char *buf, int len, char *string) {
 /*输入信息，提交到服务器*/
 void input_userinfo(int conn_fd, char *string) {
     char recv_buf[ BUFSIZE ];
-    char input_buf[ NAMESIZE ] = {0};
+    char *input_buf = (char *)malloc(32);
     int flag_userinfo = 0;
 
     do {
-        printf("%s : ", string);
-        if(get_userinfo(input_buf, NAMESIZE, string) < 0)
-            err("error return from get_userinfo", __LINE__);
+        printf(GREEN "%s : " END, string);
+        if(!strcmp("account", string)){
+            if(get_userinfo(input_buf, NAMESIZE, string) < 0)
+                err("error return from get_userinfo", __LINE__);
+        } else {
+            input_buf = getpass("");
+        }
         if(send(conn_fd, input_buf, sizeof(input_buf), 0) < 0)
             err("send", __LINE__);
-
         /*读取套接字数据*/
         if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
             err("recv", __LINE__);
@@ -150,7 +166,7 @@ void input_userinfo(int conn_fd, char *string) {
             flag_userinfo = VALID_USERINFO;
         } else {
 
-            printf("%s error, input again\n\n", string);
+            printf(RED "%s error, input again\n\n" END, string);
             flag_userinfo = INVALID_USERINFO;
         }
     } while(flag_userinfo == INVALID_USERINFO);
@@ -172,18 +188,18 @@ void my_register( int conn_fd ) {
     while(1) {
         flag_a = 0;
 
-        printf("Please input your account number:\n(no mroe than 6 digits , input 0 to exit)\n");
+        printf(GREEN"Please input your account number:\n(no mroe than 6 digits , input 0 to exit)\n"END);
 
         scanf("%s", recv_buf);
         if(recv_buf[0] == '0') {
-            printf("The first number should not be 0\n\n");
+            printf(RED"The first number should not be 0\n\n"END);
             continue;
         }
 
         i = 0;
         while(recv_buf[i++]) {
             if(!(recv_buf[i-1] >= '0' && recv_buf[i-1] <= '9')) {
-                printf("The account format is incorrect\n\n");
+                printf(RED"The account format is incorrect\n\n"END);
                 flag_a = 1;
                 break;
             }
@@ -290,7 +306,7 @@ void menu_login(int conn_fd) {
                     break;
                 }                
                 else
-                    printf("connect with server error\n\n");
+                    printf(RED "connect with server error\n\n" END);
 
                 break;
             }
@@ -305,7 +321,7 @@ void menu_login(int conn_fd) {
                 if(recv_buf[0] == 'y')  //已连接服务器
                     my_register(conn_fd);  // 开始注册
                 else
-                    printf(RED"connect to server error\n\n"END);
+                    printf(RED "connect to server error\n\n" END);
                 break;
             }
 
@@ -315,8 +331,8 @@ void menu_login(int conn_fd) {
                 pthread_exit(NULL);
 
             default: {
-                printf(RED"Input error. The number should be 0 ~ 2\n"END);
-                printf(RED"Press any key to continue...\n\n"END);
+                printf(RED "Input error. The number should be 0 ~ 2\n" END);
+                printf(RED "Press any key to continue...\n\n" END);
                 getchar();
                 break;
             }
@@ -330,6 +346,7 @@ void menu_chat(int conn_fd) {
     int choice;
     char recv_buf[ BUFSIZE ];
     struct message info;
+    int account;
 
     info.sock_from = conn_fd;
     info.account_from = taccount;
@@ -360,7 +377,6 @@ void menu_chat(int conn_fd) {
         printf(END);
 
         scanf("%d", &choice);
-
         getchar();
         fflush(stdin);
         CLEAR;
@@ -368,7 +384,7 @@ void menu_chat(int conn_fd) {
         switch(choice) {
             
             case 1: {  //私聊
-                printf(GREEN"Input your friend's account:\n"END);
+                printf(GREEN "Input your friend's account:\n" END);
                 scanf("%d", &info.account_to);
                 fflush(stdin);
 
@@ -376,19 +392,38 @@ void menu_chat(int conn_fd) {
 
                 while(1) {
                     fgets(info.buf, sizeof(info.buf), stdin);
-printf("input = -%s- account = %d %d\n", info.buf, info.account_from, info.account_to);
+
                     if(!strcmp(info.buf, "exit\n"))
                         break;
-
-                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
-                        err("send",__LINE__);
+                    if(strcmp(info.buf, "\n"))
+                        if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                            err("send",__LINE__);
                 }
             }
             break;
 
 
-            case 2: {
+            case 2: {  //
+                
+            }
+            break;
 
+
+            case 3: {//聊天记录
+                info.n = 3;
+                
+                printf(GREEN "Input account:\n" END);
+                scanf("%d", &info.account_to);
+                
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
+            }
+            break;
+
+
+            case 4: {//在线状态
+                info.n = 4;
             }
             break;
 

@@ -58,11 +58,13 @@ struct message {
     int account_from;
     int account_to;
     char name_from[ NAMESIZE ];  //发出用户名
-    char name_to[NAMESIZE];
+    char name_to[ NAMESIZE ];
     char time[30];
     int n;  //case对应操作
     int flag;  //是否同意
     char buf[ BUFSIZE ];
+    int state[30];
+    int num;
 };
       
     

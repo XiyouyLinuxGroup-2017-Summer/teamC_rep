@@ -59,145 +59,148 @@ void *service(void *arg) {
         pEnd -> next = NULL;
         flag_init = 1;
     }
-    
+
+
     /*登陆注册*/
-    if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0){  //接收choice
+    do {
+        if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0){  //接收choice
 
-        err("recv", __LINE__);
-    }
+            err("recv", __LINE__);
+        }
 
-    recv_buf[ret-1] = 0;
-    choice = atoi(recv_buf);
+        recv_buf[ret-1] = 0;
+        choice = atoi(recv_buf);
 
-    if(send(conn_fd, "y", 2, 0) < 0)
-        err("send", __LINE__);
+        if(send(conn_fd, "y", 2, 0) < 0)
+            err("send", __LINE__);
 
-    switch(choice) {
+        switch(choice) {
 
-        case 1: {     //登录
-            char passwd[21];
-            while(1){
-                if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)
-                    err("recv", __LINE__);
-                recv_buf[ret-1] = 0;
+            case 1: {     //登录
+                char passwd[21];
+                while(1){
+                    if((ret = recv(conn_fd, recv_buf, sizeof(recv_buf), 0)) < 0)
+                        err("recv", __LINE__);
+                    recv_buf[ret-1] = 0;
 
-                if(flag == USERNAME) {
-                    account = atoi(recv_buf);
+                    if(flag == USERNAME) {
+                        account = atoi(recv_buf);
 
-                    n = find_name(account, passwd);
+                        n = find_name(account, passwd);
 
-                    if(n == -2)
-                        send_data(conn_fd, "n");
-                    else {
-                        send_data(conn_fd, "y\n");
-                        flag = PASSWORD;
+                        if(n == -2)
+                            send_data(conn_fd, "n");
+                        else {
+                            send_data(conn_fd, "y\n");
+                            flag = PASSWORD;
+                        }
+                    } else if (flag == PASSWORD) {
+                        if(!strcmp(passwd, recv_buf)) {
+                            send_data(conn_fd, "y\n");
+                            printf("%d login, %s\n", account, my_time());
+                            choice = 0;
+
+                            /*添加为在线状态*/
+                            pthread_mutex_lock(&mutex);
+                            pNew = (struct online_user *)malloc(sizeof(struct online_user));
+                            pNew -> user_fd = conn_fd;
+                            pNew -> account = account;
+                            pEnd -> next = pNew;
+                            pEnd = pNew;
+                            pNew -> next = NULL;
+                            pthread_mutex_unlock(&mutex);
+                            break;
+                        }
+                        else
+                            send_data(conn_fd, "n");
                     }
-                } else if (flag == PASSWORD) {
-                    if(!strcmp(passwd, recv_buf)) {
-                        send_data(conn_fd, "y\n");
-                        printf("%d login, %s\n", account, my_time());
+                }
+            }
+            break;
 
-                        /*添加为在线状态*/
-                        pthread_mutex_lock(&mutex);
-                        pNew = (struct online_user *)malloc(sizeof(struct online_user));
-                        pNew -> user_fd = conn_fd;
-                        pNew -> account = account;
-                        pEnd -> next = pNew;
-                        pEnd = pNew;
-                        pNew -> next = NULL;
-                        pthread_mutex_unlock(&mutex);
+
+            case 2: {   //注册
+                while(1) {
+                    if((ret = recv(conn_fd, &account, sizeof(account), 0)) < 0)
+                        err("recv", __LINE__);
+                    if(!account)
+                        break;
+
+                    if((fp = fopen(USER_INFO, "r")) == NULL)
+                        err("fopen", __LINE__);
+                    flag = 0;
+                    while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+                        if(account == tmp.account)
+                            flag = 1;
+
+                    fclose(fp);
+
+                    if(flag)
+                        send(conn_fd, "n", 2, 0);
+                    else{
+                        send(conn_fd, "y", 2, 0);
                         break;
                     }
-                    else
-                        send_data(conn_fd, "n");
                 }
+
+                while(1) {
+                    if((fp = fopen(USER_INFO, "ab+")) == NULL)
+                        err("fopen", __LINE__);
+
+                    if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
+                        err("recv", __LINE__);
+                    memcpy(&tmp, recv_buf, sizeof(recv_buf));
+                    fprintf(fp, "\n%s %d %s", tmp.name, tmp.account, tmp.passwd);
+
+                    fclose(fp);
+
+                    if(send(conn_fd, "y", 2, 0) < 0) {
+                        err("conn_fd", __LINE__);
+                    } else {
+                        break;
+                    }
+                }
+
+                sprintf(recv_buf, "%d", tmp.account);
+
+                if(chdir(DIR_USER) < 0)
+                    err("chdir", __LINE__);
+                if(mkdir(recv_buf, 0777) < 0)
+                    err("mkdir", __LINE__);
+                chdir(recv_buf);
+                
+                if(open("friends", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
+                    err("open", __LINE__);
+                }
+                if(open("groups", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
+                    err("open", __LINE__);
+                }
+                if(open("off-online", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
+                    err("open", __LINE__);
+                }
+                if(mkdir("chat_log", 0777) < 0)
+                    err("mkdir", __LINE__);
+
+                printf("%d register success, %s\n", tmp.account, my_time());
+            }
+            break;
+
+            case 0: {   //退出，离线状态
+
+                pthread_mutex_lock(&mutex);
+                p = pHead -> next;
+                while(p != NULL) {
+                    if(p -> account == account) {
+                        pEnd -> next = p -> next;
+                        break;
+                    }
+                    pEnd -> next = p;
+                    p = p -> next;
+                }
+                pthread_mutex_unlock(&mutex);
             }
         }
-        break;
-
-
-        case 2: {   //注册
-            while(1) {
-                if((ret = recv(conn_fd, &account, sizeof(account), 0)) < 0)
-                    err("recv", __LINE__);
-                if(!account)
-                    break;
-
-                if((fp = fopen(USER_INFO, "r")) == NULL)
-                    err("fopen", __LINE__);
-                flag = 0;
-                while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
-                    if(account == tmp.account)
-                        flag = 1;
-
-                fclose(fp);
-
-                if(flag)
-                    send(conn_fd, "n", 2, 0);
-                else{
-                    send(conn_fd, "y", 2, 0);
-                    break;
-                }
-            }
-
-            while(1) {
-                if((fp = fopen(USER_INFO, "ab+")) == NULL)
-                    err("fopen", __LINE__);
-
-                if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-                    err("recv", __LINE__);
-                memcpy(&tmp, recv_buf, sizeof(recv_buf));
-                fprintf(fp, "\n%s %d %s", tmp.name, tmp.account, tmp.passwd);
-
-                fclose(fp);
-
-                if(send(conn_fd, "y", 2, 0) < 0) {
-                    err("conn_fd", __LINE__);
-                } else {
-                    break;
-                }
-            }
-
-            sprintf(recv_buf, "%d", tmp.account);
-
-            if(chdir(DIR_USER) < 0)
-                err("chdir", __LINE__);
-            if(mkdir(recv_buf, 0777) < 0)
-                err("mkdir", __LINE__);
-            chdir(recv_buf);
-            
-            if(open("friends", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
-                err("open", __LINE__);
-            }
-            if(open("groups", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
-                err("open", __LINE__);
-            }
-            if(open("off-online", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
-                err("open", __LINE__);
-            }
-            if(mkdir("chat_log", 0777) < 0)
-                err("mkdir", __LINE__);
-
-            printf("%d register success, %s\n", tmp.account, my_time());
-        }
-        break;
-
-        case 0: {   //退出，离线状态
-
-            pthread_mutex_lock(&mutex);
-            p = pHead -> next;
-            while(p != NULL) {
-                if(p -> account == account) {
-                    pEnd -> next = p -> next;
-                    break;
-                }
-                pEnd -> next = p;
-                p = p -> next;
-            }
-            pthread_mutex_unlock(&mutex);
-        }
-    }
-
+    } while(choice);
 
         /*case 3: {
             flag = 0;
@@ -251,14 +254,13 @@ void *service(void *arg) {
     while(1) {
 
         int ret = 0;  //存储recv返回值
-printf("111\n");
+
         if((ret = recv(conn_fd, &info, sizeof(info), 0)) < 0)
             err("recv", __LINE__);
         if(!ret) {  //返回值为0代表客户端退出
             printf("%d exit,  %s\n", info.account_from, my_time());
             pthread_exit(NULL);
         }
-        printf("ret = %d %d\n", ret, sizeof(info));
 
          /*获取发送者用户名*/
         fp = fopen(USER_INFO, "r");
@@ -268,15 +270,12 @@ printf("111\n");
                 break;
             }
         fclose(fp);
-printf("account_from = %d\n", info.account_from);
-printf("name = -%s-%s-\n", info.name_from, tmp.name);
-    
+
 
     /*写入时间*/
     strcpy(info.time, my_time());
         
         n = info.n;
-        flag_online = 0;  //标记是否在线
 
         switch(n)
         {
@@ -291,6 +290,8 @@ printf("name = -%s-%s-\n", info.name_from, tmp.name);
                         break;
                     }
                 fclose(fp);
+                
+                flag_online = 0;  //标记是否在线
 
                 pthread_mutex_lock(&mutex);
                 p = pHead -> next;
@@ -302,7 +303,7 @@ printf("name = -%s-%s-\n", info.name_from, tmp.name);
                     }
                     p = p -> next;
                 }
-printf("shou = %s %s\n", info.name_from, info.buf);
+
                 sprintf(recv_buf, "%d", info.account_to);  //将account转换为字符串, 接收者文件名
                 sprintf(filename_t, "%d", info.account_from);  //发送者文件名
                 strcpy(filename, DIR_USER);
@@ -315,8 +316,8 @@ printf("shou = %s %s\n", info.name_from, info.buf);
                 } else {   //离线状态
 
                     /*写入离线文件*/
-                    fp = fopen(recv_buf, "at+");
-                    fprintf(fp, "%d %s\n%s\n%s", info.account_from, info.name_from, info.time, info.buf);
+                    fp = fopen("off-online", "at+");
+                    fprintf(fp, "%d %s\n%s%s", info.account_from, info.name_from, info.time, info.buf);
                     fclose(fp);
                 }
                 pthread_mutex_unlock(&mutex);
@@ -326,18 +327,57 @@ printf("shou = %s %s\n", info.name_from, info.buf);
                 if(chdir("chat_log") < 0)
                     err("chdir", __LINE__);
                 fp = fopen(filename_t, "at+");
-                fprintf(fp, "%d  %s  %s\n%s", info.account_from, info.name_from, info.time, info.buf);
+                fprintf(fp, "%d  %s  %s%s", info.account_from, info.name_from, info.time, info.buf);
                 fclose(fp);
 
                 /*写入发出者聊天记录*/
                 strcpy(filename, DIR_USER);
                 strcat(filename, filename_t);
+                strcat(filename, "/chat_log/");
                 chdir(filename);
                 fp = fopen(recv_buf, "at+");
-                fprintf(fp, "%d  %s  %s\n%s", info.account_from, info.name_from, info.time, info.buf);
+                fprintf(fp, "%d  %s  %s%s", info.account_from, info.name_from, info.time, info.buf);
                 fclose(fp);
+            }
+            break;
+
+
+            case 2: {
 
             }
+            break;
+
+
+            case 3: {//查看聊天记录
+                chdir(DIR_USER);
+                sprintf(filename, "%d", info.account_from);
+                strcat(filename, "/chat_log/");
+                sprintf(recv_buf, "%d", info.account_to);
+                strcat(filename, recv_buf);
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d%s%s%s", &info.account_from, info.name_from, info.time, info.buf))
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send",__LINE__);
+                fclose(fp);
+            }
+            break;
+
+
+            case 4: {
+                int i = 0;
+                p = pHead -> next;
+                while(p != NULL) {
+                    info.state[i++] = p -> account;
+                    p = p -> next;
+                }
+                info.num = i;
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                err("send", __LINE__);
+            }
+            break;
+
+
         }
     }
 }
