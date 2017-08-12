@@ -93,6 +93,12 @@ void do_recv (struct message info) {
                 printf(GREEN "%d\n" END, info.state[i][0]);
         }
         break;
+
+
+        case 5: {
+            printf(GREEN "%s (%d) %s请求添加你为好友\n" END, info.name_from, info.account_from, info.time);
+        }
+        break;
     }
 }
 
@@ -371,6 +377,7 @@ void menu_chat(int conn_fd) {
         printf("---        10. Create group                  ---\n");  //建群
         printf("---        11. Delete group                  ---\n");  //解散群
         printf("---        12. Invite friend into group      ---\n");  //邀请好友加群
+        printf("---        13. deal with invitation          ---\n");  //邀请好友加群
         printf("---         0. Exit                          ---\n");
         printf("---                                          ---\n");
         printf("------------------------------------------------\n\n");
@@ -445,7 +452,35 @@ void menu_chat(int conn_fd) {
                 scanf("%d", &info.account_to);
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
-                    err("sned", __LINE__);
+                    err("send", __LINE__);
+            }
+            break;
+
+            case 13: {
+                int a;
+                printf(GREEN "Input a number:" END);
+                printf(GREEN "1. friend's invitation" END);
+                printf(GREEN "2. group's invitation" END);
+                scanf("%d", &a);
+                fflush(stdin);
+
+                if(a == 1) {
+                    info.n = 131;
+                    printf(GREEN "Input friend's account: " END);
+                    scanf("%d", &info.account_to);
+                } else if(a == 2) {
+                    info.n = 132;
+                    printf(GREEN "Input group account: " END);
+                    scanf("%d", &info.group);
+                } else {
+                    printf(RED "input error\n" END);
+                    getchar();
+                    getchar();
+                }
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
             }
             break;
 

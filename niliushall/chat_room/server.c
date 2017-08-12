@@ -98,6 +98,11 @@ void *service(void *arg) {
                         if(!strcmp(passwd, recv_buf)) {
                             send_data(conn_fd, "y\n");
                             printf("%d login, %s\n", account, my_time());
+
+                            fp = fopen(SERVER_LOG, "at+");
+                            fprintf(fp, "%d login, %s\n", account, my_time());  //写入服务器日志
+                            fclose(fp);
+
                             choice = 0;
 
                             /*添加为在线状态*/
@@ -176,6 +181,9 @@ void *service(void *arg) {
                     err("open", __LINE__);
                 }
                 if(open("off-online", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
+                    err("open", __LINE__);
+                }
+                if(open("invitation", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
                     err("open", __LINE__);
                 }
                 if(mkdir("chat_log", 0777) < 0)
@@ -259,6 +267,11 @@ void *service(void *arg) {
             err("recv", __LINE__);
         if(!ret) {  //返回值为0代表客户端退出
             printf("%d exit,  %s\n", info.account_from, my_time());
+
+            fp = fopen(SERVER_LOG, "at+");
+            fprintf(fp, "%d exit,  %s\n", info.account_from, my_time());  //写入服务器日志
+            fclose(fp);
+
             pthread_exit(NULL);
         }
 
@@ -381,6 +394,22 @@ void *service(void *arg) {
             case 5: {  //添加好友
                 char filename_t[32];
 
+                /*strcpy(filename, DIR_USER);
+                sprintf(filename_t, "%d", info.account_from);
+                strcat(filename, filename_t);
+                strcat(filename, "/invitation");
+
+                pthread_mutex_lock(&mutex);
+
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d %s ", info.account_to, info.name_to) != EOF){
+                    fgets(info.time, sizeof(info.time), fp);
+
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("senf",__LINE__);
+                }
+                fclose(fp);*/
+
                 /*获取接收者信息*/ 
                 fp = fopen(USER_INFO, "r");
                 while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
@@ -390,7 +419,6 @@ void *service(void *arg) {
                     }
                 fclose(fp);
                 
-                pthread_mutex_lock(&mutex);
                 p = pHead -> next;
                 while(p != NULL) {
                     if(p -> account == info.account_to) {
@@ -401,26 +429,37 @@ void *service(void *arg) {
                     p = p -> next;
                 }
 
-                sprintf(recv_buf, "%d", info.account_to);  //将account转换为字符串, 接收者文件名
-                sprintf(filename_t, "%d", info.account_from);  //发送者文件名
-                strcpy(filename, DIR_USER);
-                strcat(filename, recv_buf);
-                chdir(filename);     
-
                 if(flag_online) {  //在线
                     if(send(info.sock_to, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
-                } else {   //离线状态
-
-                    /*写入离线文件*/
-                    fp = fopen("off-online", "at+");
-                    fprintf(fp, "%d %s\n%s%s", info.account_from, info.name_from, info.time, info.buf);
-                    fclose(fp);
                 }
+
+                strcpy(filename, DIR_USER);
+                sprintf(filename_t, "%d", info.account_to);
+                strcat(filename, filename_t);
+                strcat(filename, "/invitation");
+
+                /*写入离线invitation文件*/
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d %s %s系统消息：对方请求添加你为好友", info.account_from, info.name_from, info.time);
+                fclose(fp);
+
                 pthread_mutex_unlock(&mutex);
 
             }
             break;
+
+
+            case 131: {  //处理加好友请求
+                strcpy(filename, DIR_USER);
+                sprintf(filename_t, "%d", info.account_from);
+                strcat(filename, filename_t);
+                strcat(filename, "/invitation");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                pthread_mutex_unlock(&mutex);
+            }
         }
     }
 }
