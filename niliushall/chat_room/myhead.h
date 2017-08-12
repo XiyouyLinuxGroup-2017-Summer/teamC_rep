@@ -17,11 +17,12 @@
 
 #define USER_INFO "/home/wangliang/chatroom_info/userinfo"
 #define DIR_USER "/home/wangliang/chatroom_info/"
+#define SERVER_LOG "/home/wangliang/chatroom_info/server_log"
 
-#define RED    "\n\033[1;31m"
-#define GREEN  "\n\033[1;32m"
-#define BLUE   "\n\033[1;34m"
-#define END    "\n\033[0m"
+#define RED    "\033[1;31m"
+#define GREEN  "\033[1;32m"
+#define BLUE   "\033[1;34m"
+#define END    "\033[0m"
 
 #define SERV_PORT 4507  //服务器端口号
 #define GROUP_MEMBER 10 //群组最大用户数
@@ -57,12 +58,14 @@ struct message {
     int account_from;
     int account_to;
     char name_from[ NAMESIZE ];  //发出用户名
-    char name_to[ NAMESIZE ];
-    char buf[ BUFSIZE ];  
+    char name_to[NAMESIZE];
     char time[30];
     int n;  //case对应操作
     int flag;  //是否同意
+    char buf[ BUFSIZE ];
 };
+      
+    
 
 
 /*函数声明*/

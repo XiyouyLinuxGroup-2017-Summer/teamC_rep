@@ -98,13 +98,14 @@ void *service(void *arg) {
                         printf("%d login, %s\n", account, my_time());
 
                         /*添加为在线状态*/
+                        pthread_mutex_lock(&mutex);
                         pNew = (struct online_user *)malloc(sizeof(struct online_user));
                         pNew -> user_fd = conn_fd;
                         pNew -> account = account;
                         pEnd -> next = pNew;
                         pEnd = pNew;
-                        pNew -> next = NULL;    
-                      
+                        pNew -> next = NULL;
+                        pthread_mutex_unlock(&mutex);
                         break;
                     }
                     else
@@ -174,9 +175,8 @@ void *service(void *arg) {
             if(open("off-online", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
                 err("open", __LINE__);
             }
-            if(open("chat_log", O_CREAT|O_TRUNC|O_RDWR, S_IRWXU) < 0) {
-                err("open", __LINE__);
-            }
+            if(mkdir("chat_log", 0777) < 0)
+                err("mkdir", __LINE__);
 
             printf("%d register success, %s\n", tmp.account, my_time());
         }
@@ -245,35 +245,35 @@ void *service(void *arg) {
         }
         break;*/
 
-    /*获取发送者用户名*/
-    fp = fopen(USER_INFO, "r");
-    while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
-        if(tmp.account ==   info.account_from) {
-            strcpy(info.name_from, tmp.name);
-            break;
-        }
-    fclose(fp);
-
-    /*获取接受者信息*/
-    fp = fopen(USER_INFO, "r");
-    while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
-        if(tmp.account == info.account_to) {
-            strcpy(info.name_to, tmp.name);
-            break;
-        }
-    fclose(fp);
-
-    /*写入时间*/
-    strcpy(info.time, my_time());
+   
 
     /*执行客户端指令*/
     while(1) {
-        int ret = 0;  //存储recv返回值
 
+        int ret = 0;  //存储recv返回值
+printf("111\n");
         if((ret = recv(conn_fd, &info, sizeof(info), 0)) < 0)
             err("recv", __LINE__);
-        if(!ret)   //返回值为0代表客户端退出
+        if(!ret) {  //返回值为0代表客户端退出
+            printf("%d exit,  %s\n", info.account_from, my_time());
             pthread_exit(NULL);
+        }
+        printf("ret = %d %d\n", ret, sizeof(info));
+
+         /*获取发送者用户名*/
+        fp = fopen(USER_INFO, "r");
+        while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+            if(tmp.account ==  info.account_from) {
+                strcpy(info.name_from, tmp.name);
+                break;
+            }
+        fclose(fp);
+printf("account_from = %d\n", info.account_from);
+printf("name = -%s-%s-\n", info.name_from, tmp.name);
+    
+
+    /*写入时间*/
+    strcpy(info.time, my_time());
         
         n = info.n;
         flag_online = 0;  //标记是否在线
@@ -281,6 +281,16 @@ void *service(void *arg) {
         switch(n)
         {
             case 1: {  //私聊
+                char filename_t[32];
+
+                /*获取接受者信息*/ 
+                fp = fopen(USER_INFO, "r");
+                while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+                    if(tmp.account == info.account_to) {
+                        strcpy(info.name_to, tmp.name);
+                        break;
+                    }
+                fclose(fp);
 
                 pthread_mutex_lock(&mutex);
                 p = pHead -> next;
@@ -290,27 +300,43 @@ void *service(void *arg) {
                         flag_online = 1;  //在线
                         break;
                     }
+                    p = p -> next;
                 }
-                pthread_mutex_unlock(&mutex);
-            
+printf("shou = %s %s\n", info.name_from, info.buf);
+                sprintf(recv_buf, "%d", info.account_to);  //将account转换为字符串, 接收者文件名
+                sprintf(filename_t, "%d", info.account_from);  //发送者文件名
+                strcpy(filename, DIR_USER);
+                strcat(filename, recv_buf);
+                chdir(filename);     
 
                 if(flag_online) {  //在线
                     if(send(info.sock_to, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
                 } else {   //离线状态
-                    sprintf(recv_buf, "%d", info.account_to);  //将account转换为字符串
-                    strcpy(filename, DIR_USER);
-                    strcat(filename, recv_buf);
-                    chdir(filename);
 
                     /*写入离线文件*/
                     fp = fopen(recv_buf, "at+");
                     fprintf(fp, "%d %s\n%s\n%s", info.account_from, info.name_from, info.time, info.buf);
                     fclose(fp);
                 }
+                pthread_mutex_unlock(&mutex);
 
 
-                 ///////////////
+                /*写入接收者聊天记录*/
+                if(chdir("chat_log") < 0)
+                    err("chdir", __LINE__);
+                fp = fopen(filename_t, "at+");
+                fprintf(fp, "%d  %s  %s\n%s", info.account_from, info.name_from, info.time, info.buf);
+                fclose(fp);
+
+                /*写入发出者聊天记录*/
+                strcpy(filename, DIR_USER);
+                strcat(filename, filename_t);
+                chdir(filename);
+                fp = fopen(recv_buf, "at+");
+                fprintf(fp, "%d  %s  %s\n%s", info.account_from, info.name_from, info.time, info.buf);
+                fclose(fp);
+
             }
         }
     }

@@ -5,7 +5,7 @@
 
 
 /*函数声明*/
-int get_userinfo(char *buf, int len);
+int get_userinfo(char *buf, int len, char *string);
 void input_userinfo(int conn_fd, char *string);
 // void menu_login(int conn_fd);
 void login(int conn_fd);
@@ -63,24 +63,35 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+
+/*子线程接收服务器数据*/
 void do_recv (struct message info) {
     int n = info.n;
     
-    if(n == 1) {  //私聊
-        printf(GREEN"%s  %s"END, info.name_from, info.time);
-
+    switch(n) {
+        case 1: {  //私聊
+            printf(BLUE"%s  %s"END, info.name_from, info.time);
+            printf(BLUE"%s"END, info.buf);
+        }
 
         /////////////////
     }
 }
 
+/*子线程接收服务器数据*/
 void *recv_thread(void *arg) {
     struct message info_recv;
     int conn_fd = *(int *)arg;
+    int ret;
 
     while(1) {
-        if(recv(conn_fd, &info_recv, sizeof(info_recv), 0) < 0)
+        if((ret = recv(conn_fd, &info_recv, sizeof(info_recv), 0)) < 0)
             err("recv", __LINE__);
+        if(!ret) {
+            printf(RED"server exit."END);
+            pthread_exit(NULL);
+        }
+
         do_recv(info_recv);
     }
 }
@@ -99,7 +110,7 @@ void login(int conn_fd){
 }
 
 /*获取用户输入信息*/
-int get_userinfo(char *buf, int len) {
+int get_userinfo(char *buf, int len, char *string) {
     int i;
 
     if(buf == NULL)
@@ -109,6 +120,9 @@ int get_userinfo(char *buf, int len) {
     while((buf[i++] = getchar()) != '\n' && i < len-1)
         ;
     buf[i-1] = 0;
+
+    if(!strcmp(string, "account"))
+        taccount = atoi(buf);
 
     // fflush(stdin);
     
@@ -123,7 +137,7 @@ void input_userinfo(int conn_fd, char *string) {
 
     do {
         printf("%s : ", string);
-        if(get_userinfo(input_buf, NAMESIZE) < 0)
+        if(get_userinfo(input_buf, NAMESIZE, string) < 0)
             err("error return from get_userinfo", __LINE__);
         if(send(conn_fd, input_buf, sizeof(input_buf), 0) < 0)
             err("send", __LINE__);
@@ -133,9 +147,6 @@ void input_userinfo(int conn_fd, char *string) {
             err("recv", __LINE__);
 
         if(recv_buf[0] == VALID_USERINFO) {
-            if(!strcmp(string, "account"))
-                taccount = atoi(recv_buf);
-
             flag_userinfo = VALID_USERINFO;
         } else {
 
@@ -350,20 +361,38 @@ void menu_chat(int conn_fd) {
 
         scanf("%d", &choice);
 
-
-        
         getchar();
         fflush(stdin);
+        CLEAR;
 
         switch(choice) {
             
             case 1: {  //私聊
+                printf(GREEN"Input your friend's account:\n"END);
+                scanf("%d", &info.account_to);
+                fflush(stdin);
 
                 info.n = 1;
-                fgets(info.buf, sizeof(info.buf), stdin);                
 
-                ////////////////////
+                while(1) {
+                    fgets(info.buf, sizeof(info.buf), stdin);
+printf("input = -%s- account = %d %d\n", info.buf, info.account_from, info.account_to);
+                    if(!strcmp(info.buf, "exit\n"))
+                        break;
+
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send",__LINE__);
+                }
             }
+            break;
+
+
+            case 2: {
+
+            }
+            break;
+
+            
         }
     } while(choice);
 }
