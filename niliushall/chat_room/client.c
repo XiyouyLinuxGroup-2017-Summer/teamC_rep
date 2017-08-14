@@ -78,7 +78,7 @@ void do_recv (struct message info, int conn_fd) {
 
 
         case 2: {
-
+            printf(BLUE "[群聊] %d -- %s %s\n" END, info.account_from, info.time, info.buf);
         }
         break;
 
@@ -180,13 +180,12 @@ void do_recv (struct message info, int conn_fd) {
             else {
                 printf(GREEN "friend's account %d to join group %d. (0 / 1, 1 to agree, 0 to disagree): " END, info.account_to, info.group);
                 scanf("%d", &info.flag);
-printf("flag = %d\n", info.flag);
+
                 if(info.flag == 1) {
                     info.n = 1321;
-printf("111\n");
+
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
-printf("send success\n");
                 } else if(!info.flag){  
                     info.n = 1320;
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
@@ -477,7 +476,7 @@ void menu_chat(int conn_fd) {
         printf("---        10. Create group                  ---\n");  //建群
         printf("---        11. Delete group                  ---\n");  //解散群
         printf("---        12. Invite friend into group      ---\n");  //邀请好友加群
-        printf("---        13. deal with invitation          ---\n");  //邀请好友加群
+        printf("---        13. deal with invitation          ---\n");  //处理添加请求
         printf("---         0. Exit                          ---\n");
         printf("---                                          ---\n");
         printf("------------------------------------------------\n\n");
@@ -512,8 +511,21 @@ void menu_chat(int conn_fd) {
 
 
             case 2: {  //群聊
+
+                info.n = 2;
                 printf(GREEN "Input group account: " END);
                 scanf("%d", &info.group);
+
+                while(1) {
+                    fgets(info.buf, sizeof(info.buf), stdin);
+
+                    if(!strcmp(info.buf, "exit\n"))
+                        break;
+                    if(strcmp(info.buf, "\n"))
+                        if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                            err("send",__LINE__);
+
+                }
 
                 //////////////////////
             }

@@ -358,7 +358,61 @@ void *service(void *arg) {
 
 
             case 2: {  //群聊
+                int member[50][2] = {0}, i, j = 0, a;
+                strcpy(info.time, my_time());
 
+                chdir(DIR_GROUP);
+                sprintf(filename, "%d", info.group);
+                strcat(filename, "/member");
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+
+                while(fscanf(fp, "%d %d", &member[j][0], &a) != EOF) { //获取群成员帐号
+                    if(member[j][0] == info.account_from)
+                        ;
+                    else
+                        j++;
+                }
+                fclose(fp);
+                if(!member[j-1][0])
+                    j--;
+
+                for(i = 0; i < j; i++) {
+                    p = pHead -> next;
+                    while(p != NULL) {
+                        if(p -> account == member[i][0]) {
+                            member[i][1] = 1;  //标记已经发过的成员
+                            if(send(p->user_fd, &info, sizeof(info), 0) < 0)
+                                err("send", __LINE__);
+                            break;
+                        }
+                        p = p -> next;
+                    }
+
+                    if(!member[i][1]) {  //用户不在线
+                        
+                        /*写入离线记录*/
+                        strcpy(filename, DIR_USER);
+                        sprintf(recv_buf, "%d", member[i][0]);
+                        strcat(filename, recv_buf);
+                        strcat(filename, "/off-online");
+
+                        fp = fopen(filename, "at+");
+                        fprintf(fp, "%d %s%s", info.account_from, info.time, info.buf);
+                        fclose(fp);
+                    }
+                }
+
+                /*写入群聊天记录*/
+                strcpy(filename, DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                strcat(filename, "/chat_log");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d %s%s", info.account_from, info.time, info.buf);
+                fclose(fp);
+                pthread_mutex_unlock(&mutex);
             }
             break;
 
