@@ -758,6 +758,41 @@ void *service(void *arg) {
             break;
 
 
+            case 11: {  //解散群
+                /*判断是否为群主*/
+                int member[50], i, j = 0, a;
+                strcpy(filename, DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                strcat(filename, "/member");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                fscanf(fp, "%d %d", &member[j], &a); //获取文件第一个，即群主帐号
+                if(member[j] != info.account_from) {
+                    info.n = 110;  //不是群主
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                j++;
+                while(fscanf(fp, "%d %d", &member[j++], &a) !=EOF)  //获取文件剩余群成员帐号
+                    ;
+                fclose(fp);
+
+                if(!member[j-1]) //最后不是0
+                    j--;
+
+                /*删除群目录、群成员group信息*/
+                for(i = 0; i < j; i++) {
+
+                }
+                pthread_mutex_unlock(&mutex);
+            }
+            break;
+
+
             case 131: {  //处理加好友请求
                 strcpy(filename, DIR_USER);
                 sprintf(recv_buf, "%d", info.account_from);

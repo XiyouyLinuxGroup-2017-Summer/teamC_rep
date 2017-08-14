@@ -150,6 +150,11 @@ void do_recv (struct message info, int conn_fd) {
         break;
 
 
+        case 110: {
+            printf(RED "解散群出错，你不是群主\n" END);
+        }
+        break;
+
         case 131: {
             if(info.flag == 3)
                 printf(GREEN "无更多添加请求\n" END);
@@ -526,8 +531,6 @@ void menu_chat(int conn_fd) {
                             err("send",__LINE__);
 
                 }
-
-                //////////////////////
             }
             break;
 
@@ -638,6 +641,21 @@ void menu_chat(int conn_fd) {
 
                 getchar();
                 getchar();
+            }
+            break;
+
+
+            case 11: {  //解散群
+                info.n = 11;
+
+                printf(GREEN "Input group account to delete(-1 to exit): " END);
+                scanf("%d", &info.group);
+
+                if(info.group == -1)
+                    break;
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
             }
             break;
 
