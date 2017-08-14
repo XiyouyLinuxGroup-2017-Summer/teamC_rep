@@ -420,7 +420,7 @@ void *service(void *arg) {
                 fclose(fp);
                 
                 p = pHead -> next;
-                while(p != NULL) {
+                while(p != NULL) {      
                     if(p -> account == info.account_to) {
                         info.sock_to = p -> user_fd;
                         flag_online = 1;  //在线
@@ -441,7 +441,7 @@ void *service(void *arg) {
 
                 /*写入离线invitation文件*/
                 fp = fopen(filename, "at+");
-                fprintf(fp, "%d %s %s系统消息：对方请求添加你为好友", info.account_from, info.name_from, info.time);
+                fprintf(fp, "%d\n", info.account_from);
                 fclose(fp);
 
                 pthread_mutex_unlock(&mutex);
@@ -452,14 +452,62 @@ void *service(void *arg) {
 
             case 131: {  //处理加好友请求
                 strcpy(filename, DIR_USER);
-                sprintf(filename_t, "%d", info.account_from);
-                strcat(filename, filename_t);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
                 strcat(filename, "/invitation");
 
                 pthread_mutex_lock(&mutex);
                 fp = fopen(filename, "r");
+                while(fscanf(fp, "%d", &info.account_to) !=EOF)
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                fclose(fp);
+
+                info.n = 1;
+                strcpy(info.buf, "无更多好友申请\n"); //无更多好友申请
+                info.flag = 3;
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
                 pthread_mutex_unlock(&mutex);
             }
+            break;
+
+            case 1311: { //同意添加
+
+                pthread_mutex_lock(&mutex);
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/friends");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d", info.account_to);
+                fclose(fp);
+
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_to);
+                strcat(filename, recv_buf);
+                strcat(filename, "/friends");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d", info.account_from);
+                fclose(fp);
+                pthread_mutex_unlock(&mutex);
+            }
+            break;
+
+            case 1310: {  //不同意
+                
+                ///////////////////  
+
+            }
+            break;
+
+            case 132: {
+
+            }
+            break;
         }
     }
 }

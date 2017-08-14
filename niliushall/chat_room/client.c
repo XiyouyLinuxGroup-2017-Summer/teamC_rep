@@ -16,6 +16,8 @@ void * recv_thread(void *);
 
 int taccount;
 char tname[NAMESIZE];
+pthread_mutex_t mutex;
+pthread_cond_t cond;
 
 
 int main(int argc, char **argv) {
@@ -65,7 +67,7 @@ int main(int argc, char **argv) {
 
 
 /*子线程接收服务器数据*/
-void do_recv (struct message info) {
+void do_recv (struct message info, int conn_fd) {
     int n = info.n;
     
     switch(n) {
@@ -99,6 +101,32 @@ void do_recv (struct message info) {
             printf(GREEN "%s (%d) %s请求添加你为好友\n" END, info.name_from, info.account_from, info.time);
         }
         break;
+
+
+        case 131: {
+            if(info.flag == 3)
+                printf(GREEN "无更多添加请求\n" END);
+            else {
+                printf(GREEN "friend's account %d : " END, info.account_to);
+                scanf("%d", &info.flag);
+
+                if(info.flag == 1) {
+                    info.n = 1311;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+
+                } else if(!info.flag){  
+                    info.n = 1300;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else {
+                    printf(RED "number input error\n" END);
+                }
+            }
+            pthread_cond_signal(&cond);
+        }
+        break;
+
     }
 }
 
@@ -115,8 +143,8 @@ void *recv_thread(void *arg) {
             printf(RED"server exit."END);
             pthread_exit(NULL);
         }
-printf("n = %d\n", info_recv.n);
-        do_recv(info_recv);
+
+        do_recv(info_recv, conn_fd);
     }
 }
 
@@ -458,20 +486,23 @@ void menu_chat(int conn_fd) {
 
             case 13: {
                 int a;
-                printf(GREEN "Input a number:" END);
-                printf(GREEN "1. friend's invitation" END);
-                printf(GREEN "2. group's invitation" END);
+                pthread_mutex_lock(&mutex);
+                printf(GREEN "Input a number:\n" END);
+                printf(GREEN "1. friend's invitation\n" END);
+                printf(GREEN "2. group's invitation\n" END);
                 scanf("%d", &a);
                 fflush(stdin);
 
                 if(a == 1) {
                     info.n = 131;
-                    printf(GREEN "Input friend's account: " END);
-                    scanf("%d", &info.account_to);
+                    // printf(GREEN "Input 0 or 1: " END);
+                    // scanf("%d", );
                 } else if(a == 2) {
                     info.n = 132;
-                    printf(GREEN "Input group account: " END);
+                    // printf(GREEN "Input group account: " END);
                     scanf("%d", &info.group);
+                } else if(a == -1) {
+                    break;
                 } else {
                     printf(RED "input error\n" END);
                     getchar();
@@ -480,10 +511,10 @@ void menu_chat(int conn_fd) {
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
-
-            }
+                }
+                pthread_cond_wait(&cond, &mutex);
+                pthread_mutex_unlock(&mutex);
             break;
-
 
 
         }
