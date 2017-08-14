@@ -186,6 +186,9 @@ void *service(void *arg) {
                 if(open("invitation", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
                     err("open", __LINE__);
                 }
+                if(open("group_invitation", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0) {
+                    err("open", __LINE__);
+                }
                 if(mkdir("chat_log", 0777) < 0)
                     err("mkdir", __LINE__);
 
@@ -394,22 +397,6 @@ void *service(void *arg) {
             case 5: {  //添加好友
                 char filename_t[32];
 
-                /*strcpy(filename, DIR_USER);
-                sprintf(filename_t, "%d", info.account_from);
-                strcat(filename, filename_t);
-                strcat(filename, "/invitation");
-
-                pthread_mutex_lock(&mutex);
-
-                fp = fopen(filename, "r");
-                while(fscanf(fp, "%d %s ", info.account_to, info.name_to) != EOF){
-                    fgets(info.time, sizeof(info.time), fp);
-
-                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
-                        err("senf",__LINE__);
-                }
-                fclose(fp);*/
-
                 /*获取接收者信息*/ 
                 fp = fopen(USER_INFO, "r");
                 while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
@@ -510,6 +497,95 @@ void *service(void *arg) {
             break;
 
 
+            case 8: {  //加群
+                int flag_exist1 = 0, flag_exist2 = 0, t;
+                strcpy(info.time, my_time());
+
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/groups");
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d", &t) != EOF)
+                    if(t == info.group) {  //查看该群是否已加
+                        flag_exist1 = 1;
+                        info.n = 80; //已添加
+                        if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                            err("send", __LINE__);
+                        break;
+                    }
+                fclose(fp);
+
+                /*群是否存在*/
+                chdir(DIR_GROUP);
+                fp = fopen("groupinfo", "r");
+                while(fscanf(fp, "%d", &t) != EOF)
+                    if(t == info.group) {
+                        flag_exist2 = 1;
+                        break;
+                    }
+                fclose(fp);
+                if(!flag_exist2) { //群未创建
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                if(!flag_exist1 && flag_exist2) {
+                    /*获取群主信息*/ 
+                    strcpy(filename, DIR_GROUP);
+                    sprintf(recv_buf, "%d", info.group);
+                    strcat(filename, recv_buf);
+                    strcat(filename, "/member");
+
+                    /*群主帐号*/
+                    fp = fopen(filename, "r");
+                    fscanf(fp, "%d", &info.account_to);
+                    fclose(fp);
+
+                    fp = fopen(USER_INFO, "r");
+                    while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+                        if(tmp.account == info.account_to) {
+                            strcpy(info.name_to, tmp.name);
+                            break;
+                        }
+                    fclose(fp);
+
+                    /*群主是否在线*/
+                    p = pHead -> next;
+                    while(p != NULL) {      
+                        if(p -> account == info.account_to) {
+                            info.sock_to = p -> user_fd;
+                            flag_online = 1;  //在线
+                            break;
+                        }
+                        p = p -> next;
+                    }
+
+                    if(flag_online) {  //在线
+                        if(send(info.sock_to, &info, sizeof(info), 0) < 0)
+                            err("send", __LINE__);
+                    }
+
+                    /*写入群主加群申请文件*/
+                    strcpy(filename, DIR_USER);
+                    sprintf(recv_buf, "%d", info.account_to);
+                    strcat(filename, recv_buf);
+                    strcat(filename, "/group_invitation");
+
+                    fp = fopen(filename, "at+");
+                    fprintf(fp, "%d\n", info.account_from);
+                    fclose(fp);
+                }
+
+                pthread_mutex_unlock(&mutex);
+
+            }
+            break;
+
+
             case 9: {  //退群
                 int t[30][2], i = 0, j = 0, flag_header = 0;
 
@@ -518,7 +594,7 @@ void *service(void *arg) {
                 strcat(filename, recv_buf);
                 strcat(filename, "/member");
 
-                /*删除文件内信息*/
+                /*删除群文件内信息*/
                 pthread_mutex_lock(&mutex);
                 fp = fopen(filename, "r");
 
@@ -541,7 +617,7 @@ void *service(void *arg) {
                         fprintf(fp, "%d %d\n", t[j][0], t[j][1]);
                     fclose(fp);
 
-                    /**/
+                    /*删除自己的群文件信息*/
                     strcpy(filename, DIR_USER);
                     sprintf(recv_buf, "%d", info.account_from);
                     strcat(filename, recv_buf);
@@ -557,6 +633,7 @@ void *service(void *arg) {
                     }
                     fclose(fp);
 
+                    /*重写文件信息*/
                     fp = fopen(filename, "w");
                     for(j = 0; j < i; j++)
                         fprintf(fp, "%d\n", t[j][0]);
@@ -574,7 +651,6 @@ void *service(void *arg) {
 
 
             case 10: {  //建群
-
                 int a, flag_exist = 0;
                 pthread_mutex_lock(&mutex);
                 chdir(DIR_GROUP);
@@ -680,14 +756,14 @@ void *service(void *arg) {
             }
             break;
 
-            case 1310: {  //不同意
+            case 1310: {  //不同意添加好友
                 
                 ///////////////////  
 
             }
             break;
 
-            case 132: {
+            case 132: {  //处理加群请求
 
             }
             break;

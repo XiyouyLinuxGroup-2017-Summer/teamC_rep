@@ -113,6 +113,22 @@ void do_recv (struct message info, int conn_fd) {
         }
         break;
 
+
+        case 8: {  //加群
+            printf(GREEN "%d 申请添加群%d %s\n" END, info.account_from, info.group, info.time);
+        }
+        break;
+
+        case 80: {
+            printf(RED "该群（%d）已添加\n" END, info.group);
+        }
+        break;
+
+        case 81: {
+            printf(RED "该群（%d）尚未被创建\n" END, info.group);
+        }
+        break;
+
         case 9: {
             printf(GREEN "Quit group %d success\n" END, info.group);
         }
@@ -510,6 +526,7 @@ void menu_chat(int conn_fd) {
 
                 printf(GREEN "Input account: " END);
                 scanf("%d", &info.account_to);
+                fflush(stdin);
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
@@ -521,6 +538,7 @@ void menu_chat(int conn_fd) {
                 info.n = 6;
                 printf(GREEN "Input account to delete: " END);
                 scanf("%d", &info.account_to);
+                fflush(stdin);
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
@@ -541,10 +559,27 @@ void menu_chat(int conn_fd) {
             break;
 
 
-            case 9: {
+            case 8:{  //加群
+                info.n = 8;
+
+                printf(GREEN "Input account to add: " END);
+                scanf("%d", &info.group);
+                fflush(stdin);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
+                getchar();
+                getchar();
+            }
+            break;
+
+
+            case 9: {  //退群
                 info.n = 9;
                 printf(GREEN "Input group account to delete: " END);
                 scanf("%d", &info.group);
+                fflush(stdin);
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
