@@ -97,8 +97,19 @@ void do_recv (struct message info, int conn_fd) {
         break;
 
 
-        case 5: {
+        case 5: {  //添加好友
             printf(GREEN "%s (%d) %s请求添加你为好友\n" END, info.name_from, info.account_from, info.time);
+        }
+        break;
+
+
+        case 6: {  //删除好友
+            printf(GREEN "%s (%d)\n\n" END, info.name_from, info.account_from);
+        }
+        break;
+
+        case 7: {  //查看好友列表
+            printf(GREEN "%d\n" END, info.account_to);
         }
         break;
 
@@ -492,6 +503,19 @@ void menu_chat(int conn_fd) {
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
+            }
+            break;
+
+
+            case 7: {  //查看好友列表
+                info.n = 7;
+
+                // pthread_mutex_lock(&mutex);
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+                getchar();
+                // pthread_cond_wait(&cond, &mutex);
+                // pthread_mutex_unlock(&mutex);
             }
             break;
 

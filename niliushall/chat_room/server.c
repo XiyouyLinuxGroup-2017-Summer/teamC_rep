@@ -290,7 +290,6 @@ void *service(void *arg) {
         
         n = info.n;
         flag_online = 0;  //标记是否在线
-
         switch(n)
         {
             case 1: {  //私聊
@@ -487,6 +486,25 @@ void *service(void *arg) {
                 for(i = 0; i < j; i++)
                     fprintf(fp, "%d\n", a[i]);
                 fclose(fp);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+            }
+            break;
+
+
+            case 7: {  //查看好友列表
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/friends");
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d", &info.account_to) != EOF){
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                }
+                pthread_mutex_unlock(&mutex);
             }
             break;
 
