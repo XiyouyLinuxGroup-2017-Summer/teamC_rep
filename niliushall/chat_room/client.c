@@ -113,6 +113,16 @@ void do_recv (struct message info, int conn_fd) {
         }
         break;
 
+        case 10: {
+            printf(GREEN "Create new group success, account: %d\n" END, info.group);
+        }
+        break;
+
+        case 100: {
+            printf(RED "This group account %d already exists.\n" END, info.group);
+        }
+        break;
+
 
         case 131: {
             if(info.flag == 3)
@@ -411,8 +421,8 @@ void menu_chat(int conn_fd) {
         printf("---         5. Add friend                    ---\n");  //添加好友
         printf("---         6. Delete friend                 ---\n");  //删除好友
         printf("---         7. Display friends               ---\n");  //好友列表
-        printf("---         8. Quit group                    ---\n");  //退群
-        printf("---         9. Add group                     ---\n");  //加群
+        printf("---         8. Add group                     ---\n");  //加群
+        printf("---         9. Quit group                    ---\n");  //退群
         printf("---        10. Create group                  ---\n");  //建群
         printf("---        11. Delete group                  ---\n");  //解散群
         printf("---        12. Invite friend into group      ---\n");  //邀请好友加群
@@ -452,8 +462,9 @@ void menu_chat(int conn_fd) {
 
             case 2: {  //群聊
                 printf(GREEN "Input group account: " END);
+                scanf("%d", &info.group);
 
-                /////////////////////
+                //////////////////////
             }
             break;
 
@@ -516,6 +527,19 @@ void menu_chat(int conn_fd) {
                 getchar();
                 // pthread_cond_wait(&cond, &mutex);
                 // pthread_mutex_unlock(&mutex);
+            }
+            break;
+
+
+            case 10: {  //建群
+                info.n = 10;
+                printf(GREEN "Input new account: " END);
+                scanf("%d", &info.group);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+                getchar();
+                getchar();
             }
             break;
 

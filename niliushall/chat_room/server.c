@@ -509,6 +509,59 @@ void *service(void *arg) {
             break;
 
 
+            case 10: {  //建群
+                int a, flag_exist = 0;
+                pthread_mutex_lock(&mutex);
+                chdir(DIR_GROUP);
+
+
+                fp = fopen("groupinfo", "r");
+                while(fscanf(fp, "%d", &a) != EOF)
+                    if(a == info.group) {
+                        a = 1;
+                        break;
+                    }
+                fclose(fp);
+
+                if(!flag_exist) {
+                    fp = fopen("groupinfo", "at+");
+                    fprintf(fp, "%d\n", info.group);
+                    fclose(fp);
+
+                    sprintf(recv_buf, "%d", info.group);
+                    mkdir(recv_buf, 0777);
+                    chdir(recv_buf);
+                    
+                    if(open("member", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0)
+                        err("open", __LINE__);
+                    if(open("chat_log", O_CREAT|O_TRUNC|O_RDWR, 0777) < 0)
+                        err("open", __LINE__);
+
+                    fp = fopen("member", "w");
+                    fprintf(fp, "%d 1\n", info.account_from);
+                    fclose(fp);
+
+                    strcpy(filename, DIR_USER);
+                    sprintf(recv_buf, "%d", info.account_from);
+                    strcat(filename, recv_buf);
+                    strcat(filename, "/groups");
+
+                    fp = fopen(filename, "at+");
+                    fprintf(fp, "%d\n", info.group);
+                    fclose(fp);
+                    pthread_mutex_unlock(&mutex);
+
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else {
+                    info.n = 100;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                }
+            }
+            break;
+
+
             case 131: {  //处理加好友请求
                 strcpy(filename, DIR_USER);
                 sprintf(recv_buf, "%d", info.account_from);

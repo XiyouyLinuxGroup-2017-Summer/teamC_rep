@@ -17,6 +17,7 @@
 
 #define USER_INFO "/home/wangliang/chatroom_info/userinfo"
 #define DIR_USER "/home/wangliang/chatroom_info/"
+#define DIR_GROUP "/home/wangliang/chatroom_info/group"
 #define SERVER_LOG "/home/wangliang/chatroom_info/server_log"
 
 #define RED    "\033[1;31m"
