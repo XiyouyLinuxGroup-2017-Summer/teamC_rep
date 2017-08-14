@@ -450,11 +450,52 @@ void *service(void *arg) {
             break;
 
 
+            case 6: {  //删除好友
+                int a[100], i, j = 0, t;
+                
+                /*删除自己文件信息*/
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/friends");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d", &t) !=EOF)
+                    if(t != info.account_to)
+                        a[j++] = t;
+                fclose(fp);
+
+                fp = fopen(filename, "w");
+                for(i = 0; i < j; i++)
+                    fprintf(fp, "%d\n", a[i]);
+                fclose(fp);
+
+                /*删除对方文件信息*/
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_to);
+                strcat(filename, recv_buf);
+                strcat(filename, "/friends");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                if(t != info.account_to)
+                        a[j++] = t;
+                fclose(fp);
+
+                fp = fopen(filename, "w");
+                for(i = 0; i < j; i++)
+                    fprintf(fp, "%d\n", a[i]);
+                fclose(fp);
+            }
+            break;
+
+
             case 131: {  //处理加好友请求
                 strcpy(filename, DIR_USER);
                 sprintf(recv_buf, "%d", info.account_from);
                 strcat(filename, recv_buf);
-                strcat(filename, "/invitation");
+                strcat(filename, "/friends");
 
                 pthread_mutex_lock(&mutex);
                 fp = fopen(filename, "r");
@@ -464,7 +505,10 @@ void *service(void *arg) {
                 fclose(fp);
 
                 info.n = 1;
-                strcpy(info.buf, "无更多好友申请\n"); //无更多好友申请
+
+                fp = fopen(filename, "w");
+                fclose(fp);
+
                 info.flag = 3;
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
@@ -482,7 +526,7 @@ void *service(void *arg) {
                 strcat(filename, "/friends");
 
                 fp = fopen(filename, "at+");
-                fprintf(fp, "%d", info.account_to);
+                fprintf(fp, "%d\n", info.account_to);
                 fclose(fp);
 
                 strcpy(filename, DIR_USER);
@@ -491,7 +535,7 @@ void *service(void *arg) {
                 strcat(filename, "/friends");
 
                 fp = fopen(filename, "at+");
-                fprintf(fp, "%d", info.account_from);
+                fprintf(fp, "%d\n", info.account_from);
                 fclose(fp);
                 pthread_mutex_unlock(&mutex);
             }

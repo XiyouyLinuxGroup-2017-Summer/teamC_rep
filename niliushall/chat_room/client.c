@@ -484,7 +484,19 @@ void menu_chat(int conn_fd) {
             }
             break;
 
-            case 13: {
+
+            case 6 : {  //删除好友
+                info.n = 6;
+                printf(GREEN "Input account to delete: " END);
+                scanf("%d", &info.account_to);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+            }
+            break;
+
+
+            case 13: {  //处理添加好友信息
                 int a;
                 pthread_mutex_lock(&mutex);
                 printf(GREEN "Input a number:\n" END);
