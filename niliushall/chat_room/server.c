@@ -576,7 +576,7 @@ void *service(void *arg) {
                     strcat(filename, "/group_invitation");
 
                     fp = fopen(filename, "at+");
-                    fprintf(fp, "%d\n", info.account_from);
+                    fprintf(fp, "%d %d\n", info.account_from, info.group);
                     fclose(fp);
                 }
 
@@ -708,7 +708,7 @@ void *service(void *arg) {
                 strcpy(filename, DIR_USER);
                 sprintf(recv_buf, "%d", info.account_from);
                 strcat(filename, recv_buf);
-                strcat(filename, "/friends");
+                strcat(filename, "/invitation");
 
                 pthread_mutex_lock(&mutex);
                 fp = fopen(filename, "r");
@@ -717,11 +717,11 @@ void *service(void *arg) {
                         err("send", __LINE__);
                 fclose(fp);
 
-                info.n = 1;
-
+                /*清空文件*/
                 fp = fopen(filename, "w");
                 fclose(fp);
 
+                info.n = 1;
                 info.flag = 3;
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
@@ -732,7 +732,7 @@ void *service(void *arg) {
 
 
 
-            case 1311: { //同意添加
+            case 1311: { //同意添加好友
 
                 pthread_mutex_lock(&mutex);
                 strcpy(filename, DIR_USER);
@@ -764,7 +764,59 @@ void *service(void *arg) {
             break;
 
             case 132: {  //处理加群请求
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/group_invitation");
 
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d %d", &info.account_to, &info.group) !=EOF)
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                fclose(fp);
+
+                /*清空文件*/
+                fp = fopen(filename, "w");
+                fclose(fp);
+
+                info.n = 1;
+                info.flag = 3;
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
+                pthread_mutex_unlock(&mutex);
+            }
+            break;
+
+
+            case 1321: {  //同意加群请求
+
+                pthread_mutex_lock(&mutex);
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_to);
+                strcat(filename, recv_buf);
+                strcat(filename, "/groups");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d\n", info.group);
+                fclose(fp);
+
+                strcpy(filename, DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                strcat(filename, "/member");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d 2\n", info.account_to);
+                fclose(fp);
+                pthread_mutex_unlock(&mutex);
+            }
+            break;
+
+
+            case 1320: {  //拒绝加群请求
+                ///////
             }
             break;
         }

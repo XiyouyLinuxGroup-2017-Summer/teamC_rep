@@ -156,14 +156,39 @@ void do_recv (struct message info, int conn_fd) {
             else {
                 printf(GREEN "friend's account %d (0 / 1, 1 to agree, 0 to disagree): " END, info.account_to);
                 scanf("%d", &info.flag);
-
                 if(info.flag == 1) {
                     info.n = 1311;
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
 
                 } else if(!info.flag){  
-                    info.n = 1300;
+                    info.n = 1310;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else {
+                    printf(RED "number input error\n" END);
+                }
+            }
+            pthread_cond_signal(&cond);
+        }
+        break;
+
+
+        case 132: {
+            if(info.flag == 3)
+                printf(GREEN "无更多添加请求\n" END);
+            else {
+                printf(GREEN "friend's account %d to join group %d. (0 / 1, 1 to agree, 0 to disagree): " END, info.account_to, info.group);
+                scanf("%d", &info.flag);
+printf("flag = %d\n", info.flag);
+                if(info.flag == 1) {
+                    info.n = 1321;
+printf("111\n");
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+printf("send success\n");
+                } else if(!info.flag){  
+                    info.n = 1320;
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
                 } else {
