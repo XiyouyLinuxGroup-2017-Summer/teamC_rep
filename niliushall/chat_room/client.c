@@ -113,10 +113,20 @@ void do_recv (struct message info, int conn_fd) {
         }
         break;
 
+        case 9: {
+            printf(GREEN "Quit group %d success\n" END, info.group);
+        }
+        break;
+
+        case 90: {
+            printf(RED "you are header of this group, can not quit group\n" END);
+        }
+        break;
+
         case 10: {
             printf(GREEN "Create new group success, account: %d\n" END, info.group);
         }
-        break;
+        break;        
 
         case 100: {
             printf(RED "This group account %d already exists.\n" END, info.group);
@@ -128,7 +138,7 @@ void do_recv (struct message info, int conn_fd) {
             if(info.flag == 3)
                 printf(GREEN "无更多添加请求\n" END);
             else {
-                printf(GREEN "friend's account %d : " END, info.account_to);
+                printf(GREEN "friend's account %d (0 / 1, 1 to agree, 0 to disagree): " END, info.account_to);
                 scanf("%d", &info.flag);
 
                 if(info.flag == 1) {
@@ -531,13 +541,29 @@ void menu_chat(int conn_fd) {
             break;
 
 
-            case 10: {  //建群
-                info.n = 10;
-                printf(GREEN "Input new account: " END);
+            case 9: {
+                info.n = 9;
+                printf(GREEN "Input group account to delete: " END);
                 scanf("%d", &info.group);
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
+
+                getchar();
+                getchar();
+            }
+            break;
+
+
+            case 10: {  //建群
+                info.n = 10;
+                printf(GREEN "Input new account: " END);
+                scanf("%d", &info.group);
+                fflush(stdin);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+
                 getchar();
                 getchar();
             }

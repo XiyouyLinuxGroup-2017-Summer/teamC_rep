@@ -290,6 +290,7 @@ void *service(void *arg) {
         
         n = info.n;
         flag_online = 0;  //标记是否在线
+// printf("n = %d\n", n);
         switch(n)
         {
             case 1: {  //私聊
@@ -509,21 +510,85 @@ void *service(void *arg) {
             break;
 
 
+            case 9: {  //退群
+                int t[30][2], i = 0, j = 0, flag_header = 0;
+
+                chdir(DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                strcat(filename, "/member");
+
+                /*删除文件内信息*/
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+
+                while(fscanf(fp, "%d %d", &t[i][0], &t[i][1]) != EOF){
+                    if(t[0][0] == info.account_from) {
+                        info.n = 90;
+                        if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                            err("send", __LINE__);
+                        flag_header = 1;
+                        break;
+                    }
+                    if(t[i][0] != info.account_from)
+                        i++;
+                }
+                fclose(fp);
+
+                if(!flag_header) {
+                    fp = fopen(filename, "w");
+                    for(j = 0; j < i; j++)
+                        fprintf(fp, "%d %d\n", t[j][0], t[j][1]);
+                    fclose(fp);
+
+                    /**/
+                    strcpy(filename, DIR_USER);
+                    sprintf(recv_buf, "%d", info.account_from);
+                    strcat(filename, recv_buf);
+                    strcat(filename, "/groups");
+
+                    i = 0;
+                    j = 0;
+                    fp = fopen(filename, "r");
+                    while(fscanf(fp, "%d", &t[i][0]) != EOF) {
+
+                        if(t[i][0] != info.group)
+                            i++;
+                    }
+                    fclose(fp);
+
+                    fp = fopen(filename, "w");
+                    for(j = 0; j < i; j++)
+                        fprintf(fp, "%d\n", t[j][0]);
+                    fclose(fp);
+
+                    pthread_mutex_unlock(&mutex);
+                } else {
+                    break;
+                }
+                
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+            }
+            break;
+
+
             case 10: {  //建群
+
                 int a, flag_exist = 0;
                 pthread_mutex_lock(&mutex);
                 chdir(DIR_GROUP);
 
-
+                /*查看群号是否已存在*/
                 fp = fopen("groupinfo", "r");
                 while(fscanf(fp, "%d", &a) != EOF)
                     if(a == info.group) {
-                        a = 1;
+                        flag_exist = 1;
                         break;
                     }
                 fclose(fp);
 
-                if(!flag_exist) {
+                if(!flag_exist) {//群号不存在
                     fp = fopen("groupinfo", "at+");
                     fprintf(fp, "%d\n", info.group);
                     fclose(fp);
@@ -538,7 +603,7 @@ void *service(void *arg) {
                         err("open", __LINE__);
 
                     fp = fopen("member", "w");
-                    fprintf(fp, "%d 1\n", info.account_from);
+                    fprintf(fp, "%d 1\n", info.account_from);//写入群成员文件
                     fclose(fp);
 
                     strcpy(filename, DIR_USER);
@@ -547,9 +612,8 @@ void *service(void *arg) {
                     strcat(filename, "/groups");
 
                     fp = fopen(filename, "at+");
-                    fprintf(fp, "%d\n", info.group);
+                    fprintf(fp, "%d\n", info.group);//写入文件：用户已加入的群
                     fclose(fp);
-                    pthread_mutex_unlock(&mutex);
 
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
@@ -558,6 +622,8 @@ void *service(void *arg) {
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
                 }
+
+                pthread_mutex_unlock(&mutex);
             }
             break;
 
@@ -587,6 +653,8 @@ void *service(void *arg) {
                 pthread_mutex_unlock(&mutex);
             }
             break;
+
+
 
             case 1311: { //同意添加
 
