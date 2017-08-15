@@ -17,11 +17,13 @@
 
 #define USER_INFO "/home/wangliang/chatroom_info/userinfo"
 #define DIR_USER "/home/wangliang/chatroom_info/"
+#define DIR_GROUP "/home/wangliang/chatroom_info/group/"
+#define SERVER_LOG "/home/wangliang/chatroom_info/server_log"
 
-#define RED    "\n\033[1;31m"
-#define GREEN  "\n\033[1;32m"
-#define BLUE   "\n\033[1;34m"
-#define END    "\n\033[0m"
+#define RED    "\033[1;31m"
+#define GREEN  "\033[1;32m"
+#define BLUE   "\033[1;34m"
+#define END    "\033[0m"
 
 #define SERV_PORT 4507  //服务器端口号
 #define GROUP_MEMBER 10 //群组最大用户数
@@ -41,7 +43,6 @@ struct userinfo {   //记录用户信息
 
 struct online_user {   // 记录在线用户信息
     int user_fd;    //用户socket
-    char name[ NAMESIZE ];
     int account;
     struct online_user *next;
 };
@@ -53,19 +54,30 @@ struct group {         // 记录群组信息
 };
 
 struct message {
-    int from;
-    int to;
-    char name[ NAMESIZE ];
-    char buf[ BUFSIZE ];
+    int sock_from;  //发出用户socket
+    int sock_to;  //接收用户socket
+    int account_from;
+    int account_to;
+    char name_from[ NAMESIZE ];  //发出用户名
+    char name_to[ NAMESIZE ];
     char time[30];
+    int n;  //case对应操作
+    int flag;  //是否同意
+    char buf[ BUFSIZE ];
+    int state[30][2];  //在线状态或群成员等级
+    int num;
+    int group;
+    char group_name[32];
 };
+      
+    
 
 
 /*函数声明*/
 void err(const char *, int ); // 错误处理
 char *my_time();
-void login(int );
-void my_register(int );
+void login(int);
+void my_register(int);
 
 
 void err(const char *string, int line) {
