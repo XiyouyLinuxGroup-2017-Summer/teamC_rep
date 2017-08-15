@@ -64,10 +64,10 @@ struct message {
     int n;  //case对应操作
     int flag;  //是否同意
     char buf[ BUFSIZE ];
-    int state[30][2];  //在线状态或群成员等级
+    int state[40][2];  //在线状态或群成员等级
     int num;
     int group;
-    char group_name[32];
+    // char group_name[32];
 };
       
     

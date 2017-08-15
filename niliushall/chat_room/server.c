@@ -36,11 +36,71 @@ void send_data(int conn_fd, char *string) {
     err("send", __LINE__);
 }
 
-/*void init(void) {
-    pHead = (struct online_user *)malloc(sizeof(struct online_user));
-    pEnd = pHead;
-    pHead -> next = NULL;    
-}*/
+int isFriend(struct message *info) {
+    char filename[256], t[256];
+    int a;
+    FILE *fp;
+    strcpy(filename, DIR_USER);
+    sprintf(t, "%d", info->account_from);
+    strcat(filename, t);
+    strcat(filename, "/friends");
+
+    pthread_mutex_lock(&mutex);
+    fp = fopen(filename, "r");
+    while(fscanf(fp, "%d", &a) != EOF) {
+        if(a == info->account_to) {
+            pthread_mutex_unlock(&mutex);
+            return 1;
+        }
+    }
+    fclose(fp);
+    pthread_mutex_unlock(&mutex);
+
+    return 0;
+}
+
+int isGroup(struct message *info) {
+    char filename[256], t[256];
+    int a, x;
+    FILE *fp;
+    strcpy(filename, DIR_GROUP);
+    sprintf(t, "%d", info->group);
+    strcat(filename, t);
+    strcat(filename, "/member");
+
+    pthread_mutex_lock(&mutex);
+    fp = fopen(filename, "r");
+    while(fscanf(fp, "%d %d", &a, &x) != EOF) {
+        if(a == info->account_from) {
+            pthread_mutex_unlock(&mutex);
+            return 1;
+        }
+    }
+    fclose(fp);
+    pthread_mutex_unlock(&mutex);
+
+    return 0;
+}
+
+int inGroup(struct message *info) {
+    char filename[256], t[256];
+    FILE *fp;
+    int x;
+
+    strcpy(filename, DIR_GROUP);
+    strcat(filename, "groupinfo");
+    pthread_mutex_lock(&mutex);
+    fp = fopen(filename, "r");
+    while(fscanf(fp, "%d", &x) != EOF)
+        if(x == info->group) {
+            pthread_mutex_unlock(&mutex);
+            return 1;
+        }
+    fclose(fp);
+    pthread_mutex_unlock(&mutex);
+
+    return 0;
+}
 
 void *service(void *arg) {
     int ret, n, account = 0;
@@ -213,52 +273,6 @@ void *service(void *arg) {
         }
     } while(choice);
 
-        /*case 3: {
-            flag = 0;
-            if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-                err("recv", __LINE__);
-            memcpy(&info, recv_buf, sizeof(recv_buf));
-
-            pthread_mutex_lock(&mutex);
-            p = pHead -> next;
-            while(p != NULL) {
-                if(p -> account == info.account) {
-                    info.to = p -> user_fd;
-                    to_fd = user_fd;
-                    flag = 1;
-                    break;
-                }
-            }
-            pthread_mutex_unlock(&mutex);
-
-            fp = fopen(USER_INFO, "r");
-            while(fscanf("%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF) {
-                if(tmp.account == info.from) {
-                    strcpy(info.name, tmp.name);
-                    break;
-                }
-            }
-            fclose(fp);
-
-            if(send(info.to, "y", 2, 0) < 0)
-                err(send,__LINE__);
-
-            while(1) {
-                if(recv(conn_fd, recv_buf, sizeof(recv_buf), 0) < 0)
-                    err("recv", __LINE__);
-                if(send(to_fd, recv_buf, sizeof(recv_buf), 0) < 0) {
-                    if(send(conn_fd, "n", 2, 0) < 0)
-                        err("send_return", __LINE__);
-                } else {
-                    if(send(conn_fd, "y", 2, 0) < 0)
-                        err("send", __LINE__); 
-                }
-
-                
-
-        }
-        break;*/
-
    
 
     /*执行客户端指令*/
@@ -417,7 +431,7 @@ void *service(void *arg) {
             break;
 
 
-            case 3: {//查看聊天记录
+            case 3: {//查看好友聊天记录
                 chdir(DIR_USER);
                 sprintf(filename, "%d", info.account_from);
                 strcat(filename, "/chat_log/");
@@ -429,6 +443,29 @@ void *service(void *arg) {
                         printf("send to %d error,   line: %d\n", conn_fd, __LINE__);
                     }
                 fclose(fp);
+            }
+            break;
+
+
+            case 31: {  //查看群聊记录
+
+                if(isGroup(&info)) {
+                    chdir(DIR_GROUP);
+                    sprintf(filename, "%d", info.group);
+                    strcat(filename, "/chat_log");
+
+                    pthread_mutex_lock(&mutex);
+                    fp = fopen(filename, "r");
+                    while(fgets(info.buf, sizeof(info.buf), fp) != NULL)
+                        if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                            err("send",__LINE__);
+                    fclose(fp);
+                    pthread_mutex_unlock(&mutex);
+                } else {
+                    info.n = 30;  //未加该群
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send",__LINE__);
+                }
             }
             break;
 
@@ -1042,6 +1079,44 @@ void *service(void *arg) {
 
             case 1320: {  //拒绝加群请求
                 ///////
+            }
+            break;
+
+
+            case 14: {
+                int i = 0;
+                if(!inGroup(&info)) {
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+                if(!isGroup(&info)) {
+                    info.n = 30;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                chdir(DIR_GROUP);
+                sprintf(filename, "%d", info.group);
+                strcat(filename, "/member");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d %d", &info.state[i][0], &info.state[i++][1]) != EOF)
+                    ;
+                fclose(fp);
+
+                pthread_mutex_unlock(&mutex);
+
+                if(!info.state[i-1][0])
+                    i--;
+
+                info.num = i;
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
             }
             break;
         }
