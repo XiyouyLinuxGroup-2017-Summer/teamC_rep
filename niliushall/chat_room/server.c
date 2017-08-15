@@ -36,6 +36,7 @@ void send_data(int conn_fd, char *string) {
     err("send", __LINE__);
 }
 
+/*是否为好友*/
 int isFriend(struct message *info) {
     char filename[256], t[256];
     int a;
@@ -59,6 +60,29 @@ int isFriend(struct message *info) {
     return 0;
 }
 
+/*是否被注册*/
+int isRegister(struct message *info) {
+    char filename[256], t[256];
+    int a, b;
+    FILE *fp;
+    strcpy(filename, DIR_USER);
+    strcat(filename, "/userinfo");
+
+    pthread_mutex_lock(&mutex);
+    fp = fopen(filename, "r");
+    while(fscanf(fp, "%s %d %d", t, &a, &b) != EOF) {
+        if(a == info->account_to) {
+            pthread_mutex_unlock(&mutex);
+            return 1;
+        }
+    }
+    fclose(fp);
+    pthread_mutex_unlock(&mutex);
+
+    return 0;
+}
+
+/*是否为群成员*/
 int isGroup(struct message *info) {
     char filename[256], t[256];
     int a, x;
@@ -82,6 +106,7 @@ int isGroup(struct message *info) {
     return 0;
 }
 
+/*群是否已被创建*/
 int inGroup(struct message *info) {
     char filename[256], t[256];
     FILE *fp;
@@ -313,6 +338,13 @@ void *service(void *arg) {
             case 1: {  //私聊
                 char filename_t[32];
 
+                if(!isFriend(&info)) {
+                    info.n = 101;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
                 /*获取接收者信息*/ 
                 fp = fopen(USER_INFO, "r");
                 while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
@@ -346,7 +378,7 @@ void *service(void *arg) {
 
                     /*写入离线文件*/
                     fp = fopen("off-online", "at+");
-                    fprintf(fp, "%d %s\n%s%s", info.account_from, info.name_from, info.time, info.buf);
+                    fprintf(fp, "%s (%d)%s%s", info.name_from, info.account_from, info.time, info.buf);
                     fclose(fp);
                 }
                 pthread_mutex_unlock(&mutex);
@@ -373,8 +405,23 @@ void *service(void *arg) {
 
             case 2: {  //群聊
                 int member[50][2] = {0}, i, j = 0, a;
-                strcpy(info.time, my_time());
 
+                if(!inGroup(&info)) {
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+
+                if(!isGroup(&info)) {
+                    info.n = 30;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                strcpy(info.time, my_time());
                 chdir(DIR_GROUP);
                 sprintf(filename, "%d", info.group);
                 strcat(filename, "/member");
@@ -433,6 +480,14 @@ void *service(void *arg) {
 
             case 3: {//查看好友聊天记录
                 chdir(DIR_USER);
+
+                if(!isFriend(&info)) {
+                    info.n = 101;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
                 sprintf(filename, "%d", info.account_from);
                 strcat(filename, "/chat_log/");
                 sprintf(recv_buf, "%d", info.account_to);
@@ -443,6 +498,9 @@ void *service(void *arg) {
                         printf("send to %d error,   line: %d\n", conn_fd, __LINE__);
                     }
                 fclose(fp);
+
+                getchar();
+                getchar();
             }
             break;
 
@@ -488,6 +546,20 @@ void *service(void *arg) {
             case 5: {  //添加好友
                 char filename_t[32];
 
+                if(!isRegister(&info)) {
+                    info.n = 102;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                if(isFriend(&info)) {
+                    info.n = 103;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
                 /*获取接收者信息*/ 
                 fp = fopen(USER_INFO, "r");
                 while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
@@ -524,12 +596,21 @@ void *service(void *arg) {
 
                 pthread_mutex_unlock(&mutex);
 
+                getchar();
+                getchar();
             }
             break;
 
 
             case 6: {  //删除好友
                 int a[100], i, j = 0, t;
+
+                if(!isFriend(&info)) {
+                    info.n = 101;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
                 
                 /*删除自己文件信息*/
                 strcpy(filename, DIR_USER);
@@ -568,6 +649,9 @@ void *service(void *arg) {
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
+
+                getchar();
+                getchar();
             }
             break;
 
@@ -592,84 +676,64 @@ void *service(void *arg) {
                 int flag_exist1 = 0, flag_exist2 = 0, t;
                 strcpy(info.time, my_time());
 
-                strcpy(filename, DIR_USER);
-                sprintf(recv_buf, "%d", info.account_from);
-                strcat(filename, recv_buf);
-                strcat(filename, "/groups");
-                pthread_mutex_lock(&mutex);
-                fp = fopen(filename, "r");
-                while(fscanf(fp, "%d", &t) != EOF)
-                    if(t == info.group) {  //查看该群是否已加
-                        flag_exist1 = 1;
-                        info.n = 80; //已添加
-                        if(send(conn_fd, &info, sizeof(info), 0) < 0)
-                            err("send", __LINE__);
-                        break;
-                    }
-                fclose(fp);
-
-                /*群是否存在*/
-                chdir(DIR_GROUP);
-                fp = fopen("groupinfo", "r");
-                while(fscanf(fp, "%d", &t) != EOF)
-                    if(t == info.group) {
-                        flag_exist2 = 1;
-                        break;
-                    }
-                fclose(fp);
-                if(!flag_exist2) { //群未创建
+                if(!inGroup(&info)) {
                     info.n = 81;
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
                     break;
                 }
 
-                if(!flag_exist1 && flag_exist2) {
-                    /*获取群主信息*/ 
-                    strcpy(filename, DIR_GROUP);
-                    sprintf(recv_buf, "%d", info.group);
-                    strcat(filename, recv_buf);
-                    strcat(filename, "/member");
-
-                    /*群主帐号*/
-                    fp = fopen(filename, "r");
-                    fscanf(fp, "%d", &info.account_to);
-                    fclose(fp);
-
-                    fp = fopen(USER_INFO, "r");
-                    while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
-                        if(tmp.account == info.account_to) {
-                            strcpy(info.name_to, tmp.name);
-                            break;
-                        }
-                    fclose(fp);
-
-                    /*群主是否在线*/
-                    p = pHead -> next;
-                    while(p != NULL) {      
-                        if(p -> account == info.account_to) {
-                            info.sock_to = p -> user_fd;
-                            flag_online = 1;  //在线
-                            break;
-                        }
-                        p = p -> next;
-                    }
-
-                    if(flag_online) {  //在线
-                        if(send(info.sock_to, &info, sizeof(info), 0) < 0)
-                            err("send", __LINE__);
-                    }
-
-                    /*写入群主加群申请文件*/
-                    strcpy(filename, DIR_USER);
-                    sprintf(recv_buf, "%d", info.account_to);
-                    strcat(filename, recv_buf);
-                    strcat(filename, "/group_invitation");
-
-                    fp = fopen(filename, "at+");
-                    fprintf(fp, "%d %d 1\n", info.account_from, info.group);
-                    fclose(fp);
+                if(isGroup(&info)) {
+                    info.n = 80;
+                    if(send(p->user_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
                 }
+
+                /*获取群主信息*/ 
+                strcpy(filename, DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                strcat(filename, "/member");
+
+                /*群主帐号*/
+                fp = fopen(filename, "r");
+                fscanf(fp, "%d", &info.account_to);
+                fclose(fp);
+
+                fp = fopen(USER_INFO, "r");
+                while(fscanf(fp, "%s%d%s", tmp.name, &tmp.account, tmp.passwd) != EOF)
+                    if(tmp.account == info.account_to) {
+                        strcpy(info.name_to, tmp.name);
+                        break;
+                    }
+                fclose(fp);
+
+                /*群主是否在线*/
+                p = pHead -> next;
+                while(p != NULL) {      
+                    if(p -> account == info.account_to) {
+                        info.sock_to = p -> user_fd;
+                        flag_online = 1;  //在线
+                        break;
+                    }
+                    p = p -> next;
+                }
+
+                if(flag_online) {  //在线
+                    if(send(info.sock_to, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                }
+
+                /*写入群主加群申请文件*/
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_to);
+                strcat(filename, recv_buf);
+                strcat(filename, "/group_invitation");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d %d 1\n", info.account_from, info.group);
+                fclose(fp);
 
                 pthread_mutex_unlock(&mutex);
 
@@ -706,6 +770,20 @@ void *service(void *arg) {
 
             case 9: {  //退群
                 int t[30][2], i = 0, j = 0, flag_header = 0;
+
+                if(!inGroup(&info)) {
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                if(!isGroup(&info)) {
+                    info.n = 80;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
 
                 chdir(DIR_GROUP);
                 sprintf(recv_buf, "%d", info.group);
@@ -825,6 +903,14 @@ void *service(void *arg) {
             case 11: {  //解散群
                 /*判断是否为群主*/
                 int member[50], t[50], i, j = 0, k = 0, n, a;
+
+                if(!inGroup(&info)) {
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
                 strcpy(filename, DIR_GROUP);
                 sprintf(recv_buf, "%d", info.group);
                 strcat(filename, recv_buf);
@@ -1091,6 +1177,7 @@ void *service(void *arg) {
                         err("send", __LINE__);
                     break;
                 }
+
                 if(!isGroup(&info)) {
                     info.n = 30;
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
@@ -1119,6 +1206,26 @@ void *service(void *arg) {
                     err("send", __LINE__);
             }
             break;
+
+            case 999: {
+                info.n = 31;
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/off-online");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "r");
+                while(fgets(info.buf, sizeof(info.buf), fp) != NULL) {
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                }
+                fclose(fp);
+
+                fp = fopen(filename, "w");
+                fclose(fp);
+                pthread_mutex_unlock(&mutex);
+            }
         }
     }
 }

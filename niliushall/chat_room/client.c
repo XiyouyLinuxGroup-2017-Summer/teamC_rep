@@ -72,10 +72,26 @@ void do_recv (struct message info, int conn_fd) {
     
     switch(n) {
         case 1: {  //私聊
-            printf(BLUE"%s  %s"END, info.name_from, info.time);
-            printf(BLUE"%s\n"END, info.buf);
+            printf(BLUE"%s (%d) %s"END, info.name_from, info.account_from, info.time);
+            printf(BLUE"%s"END, info.buf);
+            printf("\n");
         }
+        break;
 
+        case 101: {
+            printf(RED "无该好友\n" END);
+        }
+        break;
+
+        case 102: {
+            printf(RED "该帐号未注册\n" END);
+        }
+        break;
+        
+        case 103: {
+            printf(RED "已经是好友\n" END);
+        }
+        break;
 
         case 2: {
             printf(BLUE "[群聊] %d -- %s %s\n" END, info.account_from, info.time, info.buf);
@@ -513,6 +529,14 @@ void menu_chat(int conn_fd) {
     info.sock_from = conn_fd;
     info.account_from = taccount;
 
+    info.n = 999;
+    CLEAR;
+    printf(GREEN "离线消息：\n" END);
+    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+        err("send",__LINE__);
+
+    getchar();
+
     do {
         CLEAR;
         printf(GREEN);
@@ -562,6 +586,7 @@ void menu_chat(int conn_fd) {
                     if(strcmp(info.buf, "\n"))
                         if(send(conn_fd, &info, sizeof(info), 0) < 0)
                             err("send",__LINE__);
+
                 }
             }
             break;
@@ -791,7 +816,7 @@ void menu_chat(int conn_fd) {
                 printf(GREEN "Input group account to display member(-1 to exit): " END);
                 scanf("%d", &info.group);
                 fflush(stdin);
-printf("group = %d\n", info.group);
+
                 if(info.group == -1)
                     break;
 
