@@ -630,12 +630,39 @@ void *service(void *arg) {
                     strcat(filename, "/group_invitation");
 
                     fp = fopen(filename, "at+");
-                    fprintf(fp, "%d %d\n", info.account_from, info.group);
+                    fprintf(fp, "%d %d 1\n", info.account_from, info.group);
                     fclose(fp);
                 }
 
                 pthread_mutex_unlock(&mutex);
 
+            }
+            break;
+
+
+            case 81: {  //同意好友加群邀请
+                /*添加至群成员文件*/
+                strcpy(filename, DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                strcat(filename, "/member");
+
+                pthread_mutex_lock(&mutex);
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d 2\n", info.account_from);
+                fclose(fp);
+
+                /*将群添加到自己的文件*/
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_from);
+                strcat(filename, recv_buf);
+                strcat(filename, "/groups");
+
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d\n", info.group);
+                fclose(fp);
+
+                pthread_mutex_unlock(&mutex);
             }
             break;
 
@@ -830,7 +857,7 @@ void *service(void *arg) {
                         j++;
                 fclose(fp);
 
-                if(!member[j-1])
+                if(!member[j-1])  //保证没有多余的0
                     j--;
 
                 fp = fopen(filename, "w");
@@ -841,6 +868,56 @@ void *service(void *arg) {
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
+            }
+            break;
+
+
+            case 12: {  //邀请好友加群
+                int flag_exist = 0, t;
+                pthread_mutex_lock(&mutex);
+
+                /*群是否存在*/
+                chdir(DIR_GROUP);
+                fp = fopen("groupinfo", "r");
+                while(fscanf(fp, "%d", &t) != EOF)
+                    if(t == info.group) {
+                        flag_exist = 1;
+                        break;
+                    }
+                fclose(fp);
+                if(!flag_exist) { //群未创建
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                    break;
+                }
+
+                p = pHead -> next;
+                while(p != NULL) {      
+                    if(p -> account == info.account_to) {
+                        info.sock_to = p -> user_fd;
+                        flag_online = 1;  //在线
+                        break;
+                    }
+                    p = p -> next;
+                }
+
+                if(flag_online) {  //在线
+                    if(send(info.sock_to, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                }
+
+                strcpy(filename, DIR_USER);
+                sprintf(recv_buf, "%d", info.account_to);
+                strcat(filename, recv_buf);
+                strcat(filename, "/group_invitation");
+
+                /*写入离线group_invitation文件*/
+                fp = fopen(filename, "at+");
+                fprintf(fp, "%d %d 2\n", info.account_from, info.group);
+                fclose(fp);
+
+                pthread_mutex_unlock(&mutex);
             }
             break;
 
@@ -905,6 +982,8 @@ void *service(void *arg) {
             break;
 
             case 132: {  //处理加群请求
+                int t;
+                info.n = 132;
                 strcpy(filename, DIR_USER);
                 sprintf(recv_buf, "%d", info.account_from);
                 strcat(filename, recv_buf);
@@ -912,9 +991,14 @@ void *service(void *arg) {
 
                 pthread_mutex_lock(&mutex);
                 fp = fopen(filename, "r");
-                while(fscanf(fp, "%d %d", &info.account_to, &info.group) !=EOF)
+                while(fscanf(fp, "%d %d %d", &info.account_to, &info.group, &t) !=EOF) {
+                    if(t == 2){
+                        info.n = 8;
+                    }
                     if(send(conn_fd, &info, sizeof(info), 0) < 0)
                         err("send", __LINE__);
+                }
+
                 fclose(fp);
 
                 /*清空文件*/

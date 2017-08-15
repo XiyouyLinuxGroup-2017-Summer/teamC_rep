@@ -115,7 +115,29 @@ void do_recv (struct message info, int conn_fd) {
 
 
         case 8: {  //加群
-            printf(GREEN "%d 申请添加群%d %s\n" END, info.account_from, info.group, info.time);
+
+            if(info.flag == 3)
+                printf(GREEN "无更多添加请求\n" END);
+            else {
+printf("111\n");
+                printf(GREEN "friend %d invite you to join group %d. (0 / 1, 1 to agree, 0 to disagree): " END, info.account_to, info.group);
+                scanf("%d", &info.flag);
+printf("flag = %d\n", info.flag);
+                fflush(stdin);
+
+                if(info.flag == 1) {
+                    info.n = 81;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else if(!info.flag){  
+                    info.n = 80;
+                    if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                        err("send", __LINE__);
+                } else {
+                    printf(RED "number input error\n" END);
+                }
+            }
+            pthread_cond_signal(&cond);
         }
         break;
 
@@ -157,6 +179,11 @@ void do_recv (struct message info, int conn_fd) {
 
         case 110: {
             printf(RED "解散群出错，你不是群主\n" END);
+        }
+        break;
+
+        case 12: {
+            printf(GREEN "%s%d 邀请你加入群%d\n" END, info.time, info.account_from, info.group);
         }
         break;
 
@@ -669,7 +696,18 @@ void menu_chat(int conn_fd) {
 
 
             case 12: {  //邀请好友加群
-                
+                info.n = 12;
+
+                printf(GREEN "Input your friend's account: \n" END);
+                scanf("%d", &info.account_to);
+                printf(GREEN "Input group account: \n" END);
+                scanf("%d", &info.group);
+                fflush(stdin);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
+                getchar();
+                getchar();
             }
             break;
 
@@ -681,6 +719,7 @@ void menu_chat(int conn_fd) {
                 printf(GREEN "1. friend's invitation\n" END);
                 printf(GREEN "2. group's invitation\n" END);
                 scanf("%d", &a);
+                getchar();
                 fflush(stdin);
 
                 if(a == 1) {
@@ -690,14 +729,14 @@ void menu_chat(int conn_fd) {
                 } else if(a == 2) {
                     info.n = 132;
                     // printf(GREEN "Input group account: " END);
-                    scanf("%d", &info.group);
+                    // scanf("%d", &info.group);
                 } else if(a == -1) {
                     break;
                 } else {
                     printf(RED "input error\n" END);
-                    getchar();
-                    getchar();
+                    // getchar();
                 }
+                // getchar();
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
