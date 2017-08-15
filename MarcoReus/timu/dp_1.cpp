@@ -11,15 +11,10 @@
 #include <string>
 
 int dp[100][100];
-/*
-int mymax(int x,int y) {
-    return x > y ? x : y;
-}
-*/
+
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    //clearios::basic_iostream(false);
     int t;
 
     cin >> t;
@@ -30,7 +25,7 @@ int main(int argc, char *argv[]) {
 
         for(int i = 0;i < n;i++) {
             for(int j = 0;j <= i;j++) {
-                cin >> dp[i][j];
+                scanf("%d",&dp[i][j]);
             }
         }
         /*
@@ -41,10 +36,7 @@ int main(int argc, char *argv[]) {
             printf("\n");
         }
         */
-        /*
-        dfs(sum+a[i][j],i，j+1);
-        dfs(sum+a[i][j],i+1,j+1);
-        */
+
         for(int i = n-2;i >= 0;i--) {
             for(int j = 0;j <= i;j++) {
                 dp[i][j] = max(dp[i][j]+dp[i+1][j],dp[i][j]+dp[i+1][j+1]);
@@ -55,5 +47,4 @@ int main(int argc, char *argv[]) {
     }
     
     return 0;
-}
 
