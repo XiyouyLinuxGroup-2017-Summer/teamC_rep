@@ -760,7 +760,7 @@ void *service(void *arg) {
 
             case 11: {  //解散群
                 /*判断是否为群主*/
-                int member[50], i, j = 0, a;
+                int member[50], t[50], i, j = 0, k = 0, n, a;
                 strcpy(filename, DIR_GROUP);
                 sprintf(recv_buf, "%d", info.group);
                 strcat(filename, recv_buf);
@@ -786,9 +786,61 @@ void *service(void *arg) {
 
                 /*删除群目录、群成员group信息*/
                 for(i = 0; i < j; i++) {
+                    k = 0;
+                    strcpy(filename, DIR_USER);
+                    sprintf(recv_buf, "%d", member[i]);
+                    strcat(filename, recv_buf);
+                    strcat(filename, "/groups");
 
+                    /*获取群成员加群信息*/
+                    fp = fopen(filename, "r");
+                    while(fscanf(fp, "%d", &t[k]) != EOF) {
+                        if(t[k] != info.group)
+                            k++;
+                    }
+                    fclose(fp);
+
+                    /*重写文件，删除要解散的群*/
+                    fp = fopen(filename, "w");
+                    for(n = 0; n < k; n++) {
+
+                        fprintf(fp, "%d\n", t[n]);
+                    }
+                    fclose(fp);
                 }
+
+                /*删除群目录*/
+                strcpy(filename, DIR_GROUP);
+                sprintf(recv_buf, "%d", info.group);
+                strcat(filename, recv_buf);
+                chdir(filename);
+                remove("chat_log");
+                remove("member");
+
+                remove(filename);
+
+                /*删除groupinfo中相关群信息*/
+                j = 0;
+                strcpy(filename, DIR_GROUP);
+                strcat(filename, "groupinfo");
+
+                fp = fopen(filename, "r");
+                while(fscanf(fp, "%d", &member[j]) != EOF)
+                    if(member[j] != info.group)
+                        j++;
+                fclose(fp);
+
+                if(!member[j-1])
+                    j--;
+
+                fp = fopen(filename, "w");
+                for(i = 0; i < j; i++)
+                    fprintf(fp, "%d\n", member[i]);
+                fclose(fp);
                 pthread_mutex_unlock(&mutex);
+
+                if(send(conn_fd, &info, sizeof(info), 0) < 0)
+                    err("send", __LINE__);
             }
             break;
 

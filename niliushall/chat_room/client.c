@@ -142,7 +142,12 @@ void do_recv (struct message info, int conn_fd) {
         case 10: {
             printf(GREEN "Create new group success, account: %d\n" END, info.group);
         }
-        break;        
+        break;
+
+        case 11: {
+            printf(GREEN "Delete group success\n" END);
+        }
+        break;
 
         case 100: {
             printf(RED "This group account %d already exists.\n" END, info.group);
@@ -656,6 +661,15 @@ void menu_chat(int conn_fd) {
 
                 if(send(conn_fd, &info, sizeof(info), 0) < 0)
                     err("send", __LINE__);
+
+                getchar();
+                getchar();
+            }
+            break;
+
+
+            case 12: {  //邀请好友加群
+                
             }
             break;
 
